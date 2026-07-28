@@ -452,39 +452,40 @@
     </div>
 
     <script>
-        // === DATABASE UNITA PER EPOCA ===
+                // === DATABASE UNITA PER EPOCA ===
         const ERAS_DATA = {
             fantasy: {
                 name: "Fantasy Classico",
                 units: {
-                    cecchino: { id: "cecchino", name: "Arciere Elfico", icon: "🏹", mov: 3, range: 5, hp: 60, atk: 35, desc: "Tiro a lunghissima gittata. Fragile.", ignoresDesert: false, isMounted: false },
-                    ranger: { id: "ranger", name: "Mago Arcano", icon: "🧙‍♂️", mov: 3, range: 3, hp: 75, atk: 30, desc: "Magia a media distanza e attacchi precisi.", ignoresDesert: false, isMounted: false },
-                    esploratore: { id: "esploratore", name: "Folletto Agile", icon: "🧚", mov: 5, range: 1, hp: 70, atk: 22, desc: "Velocissimo. Ignora i rallentamenti del deserto.", ignoresDesert: true, isMounted: false },
-                    guerriero: { id: "guerriero", name: "Cavaliere Reale", icon: "🐴", mov: 4, range: 1, hp: 110, atk: 35, desc: "Carica veloce in pianura. Rallentato nei boschi.", ignoresDesert: false, isMounted: true },
-                    colosso: { id: "colosso", name: "Golem di Pietra", icon: "🗿", mov: 2, range: 1, hp: 160, atk: 45, desc: "Super resistente ma molto lento.", ignoresDesert: false, isMounted: false }
+                    cecchino: { id: "cecchino", name: "Arciere Elfico", icon: '<i class="fa-solid fa-feather-pointed"></i>', mov: 3, range: 5, hp: 50, atk: 40, desc: "Tiro a lunghissima gittata. Fragile.", ignoresDesert: false, isMounted: false },
+                    ranger: { id: "ranger", name: "Mago Arcano", icon: '<i class="fa-solid fa-wand-magic-sparkles"></i>', mov: 3, range: 3, hp: 65, atk: 35, desc: "Magia a media distanza e attacchi precisi.", ignoresDesert: false, isMounted: false },
+                    esploratore: { id: "esploratore", name: "Folletto Agile", icon: '<i class="fa-solid fa-leaf"></i>', mov: 5, range: 1, hp: 55, atk: 25, desc: "Velocissimo. Ignora i rallentamenti del deserto.", ignoresDesert: true, isMounted: false },
+                    guerriero: { id: "guerriero", name: "Cavaliere Reale", icon: '<i class="fa-solid fa-chess-knight"></i>', mov: 4, range: 1, hp: 100, atk: 38, desc: "Carica veloce in pianura. Rallentato nei boschi.", ignoresDesert: false, isMounted: true },
+                    colosso: { id: "colosso", name: "Golem di Pietra", icon: '<i class="fa-solid fa-cube"></i>', mov: 2, range: 1, hp: 140, atk: 50, desc: "Super resistente ma molto lento.", ignoresDesert: false, isMounted: false }
                 }
             },
             west: {
                 name: "Far West",
                 units: {
-                    cecchino: { id: "cecchino", name: "Tiratore Scelto", icon: "🎯", mov: 3, range: 5, hp: 55, atk: 38, desc: "Fucile di precisione da grande distanza.", ignoresDesert: false, isMounted: false },
-                    ranger: { id: "ranger", name: "Pistolero", icon: "🤠", mov: 4, range: 3, hp: 80, atk: 28, desc: "Equilibrato e veloce con il revolver.", ignoresDesert: false, isMounted: false },
-                    esploratore: { id: "esploratore", name: "Scout Nativo", icon: "🪶", mov: 5, range: 1, hp: 75, atk: 25, desc: "Conosce la frontiera. Nessuna penalità nel deserto.", ignoresDesert: true, isMounted: false },
-                    guerriero: { id: "guerriero", name: "Cavalleria", icon: "🐎", mov: 4, range: 1, hp: 105, atk: 32, desc: "Ottima mobilità, soffre la vegetazione fitta.", ignoresDesert: false, isMounted: true },
-                    colosso: { id: "colosso", name: "Sceriffo Pesante", icon: "🛡️", mov: 2, range: 1, hp: 150, atk: 42, desc: "Fucile a pompa ravvicinato e scudo d'acciaio.", ignoresDesert: false, isMounted: false }
+                    cecchino: { id: "cecchino", name: "Tiratore Scelto", icon: '<i class="fa-solid fa-crosshairs"></i>', mov: 3, range: 5, hp: 50, atk: 42, desc: "Fucile di precisione da grande distanza.", ignoresDesert: false, isMounted: false },
+                    ranger: { id: "ranger", name: "Pistolero", icon: '<i class="fa-solid fa-gun"></i>', mov: 4, range: 3, hp: 70, atk: 32, desc: "Equilibrato e veloce con il revolver.", ignoresDesert: false, isMounted: false },
+                    esploratore: { id: "esploratore", name: "Scout Nativo", icon: '<i class="fa-solid fa-campground"></i>', mov: 5, range: 1, hp: 60, atk: 28, desc: "Conosce la frontiera. Nessuna penalità nel deserto.", ignoresDesert: true, isMounted: false },
+                    guerriero: { id: "guerriero", name: "Cavalleria", icon: '<i class="fa-solid fa-chess-knight"></i>', mov: 4, range: 1, hp: 95, atk: 35, desc: "Ottima mobilità, soffre la vegetazione fitta.", ignoresDesert: false, isMounted: true },
+                    colosso: { id: "colosso", name: "Sceriffo Pesante", icon: '<i class="fa-solid fa-star"></i>', mov: 2, range: 1, hp: 130, atk: 45, desc: "Fucile a pompa ravvicinato e stella di latta.", ignoresDesert: false, isMounted: false }
                 }
             },
             future: {
                 name: "Futuristica",
                 units: {
-                    cecchino: { id: "cecchino", name: "Railgunner", icon: "🔭", mov: 3, range: 5, hp: 60, atk: 40, desc: "Cannone a impulsi elettromagnetici a lungo raggio.", ignoresDesert: false, isMounted: false },
-                    ranger: { id: "ranger", name: "Plasma Trooper", icon: "🔫", mov: 3, range: 3, hp: 80, atk: 32, desc: "Proiettili al plasma a media distanza.", ignoresDesert: false, isMounted: false },
-                    esploratore: { id: "esploratore", name: "Hover-Drone", icon: "🛸", mov: 6, range: 1, hp: 65, atk: 22, desc: "Volante. Volo anti-attrito senza rallentamenti.", ignoresDesert: true, isMounted: false },
-                    guerriero: { id: "guerriero", name: "Cyber-Trooper", icon: "🤖", mov: 4, range: 1, hp: 100, atk: 35, desc: "Soldato cibernetico ad alte prestazioni.", ignoresDesert: false, isMounted: false },
-                    colosso: { id: "colosso", name: "Battle-Mech", icon: "🦿", mov: 2, range: 1, hp: 170, atk: 48, desc: "Corazzata robotica pesante impareggiabile.", ignoresDesert: false, isMounted: false }
+                    cecchino: { id: "cecchino", name: "Railgunner", icon: '<i class="fa-solid fa-satellite-dish"></i>', mov: 3, range: 5, hp: 55, atk: 45, desc: "Cannone a impulsi elettromagnetici a lungo raggio.", ignoresDesert: false, isMounted: false },
+                    ranger: { id: "ranger", name: "Plasma Trooper", icon: '<i class="fa-solid fa-bolt"></i>', mov: 3, range: 3, hp: 75, atk: 35, desc: "Proiettili al plasma a media distanza.", ignoresDesert: false, isMounted: false },
+                    esploratore: { id: "esploratore", name: "Hover-Drone", icon: '<i class="fa-solid fa-rocket"></i>', mov: 6, range: 1, hp: 50, atk: 25, desc: "Volante. Volo anti-attrito senza rallentamenti.", ignoresDesert: true, isMounted: false },
+                    guerriero: { id: "guerriero", name: "Cyber-Trooper", icon: '<i class="fa-solid fa-robot"></i>', mov: 4, range: 1, hp: 90, atk: 40, desc: "Soldato cibernetico ad alte prestazioni.", ignoresDesert: false, isMounted: false },
+                    colosso: { id: "colosso", name: "Battle-Mech", icon: '<i class="fa-solid fa-microchip"></i>', mov: 2, range: 1, hp: 160, atk: 55, desc: "Corazzata robotica pesante impareggiabile.", ignoresDesert: false, isMounted: false }
                 }
             }
         };
+
 
         // TERRENI E REGOLE
         const TERRAINS = {
@@ -723,7 +724,6 @@
                     const cellEl = document.createElement('div');
                     cellEl.className = `cell ${cellData.terrain}`;
 
-                    // Icona terreno di sfondo
                     if (cellData.terrain !== 'pianura') {
                         const iconSpan = document.createElement('span');
                         iconSpan.className = 'terrain-icon';
@@ -731,29 +731,24 @@
                         cellEl.appendChild(iconSpan);
                     }
 
-                    // Evidenziazione Cella Selezionata
                     if (activeUnit && activeUnit.x === x && activeUnit.y === y) {
                         cellEl.classList.add('selected');
                     }
 
-                    // Evidenziazione Mossa Valida
                     if (validMoves.some(m => m.x === x && m.y === y)) {
                         cellEl.classList.add('valid-move');
                     }
 
-                    // Evidenziazione Bersaglio Attacco
                     if (validAttacks.some(a => a.x === x && a.y === y)) {
                         cellEl.classList.add('valid-attack');
                     }
 
-                    // Render Unità
                     if (cellData.unit) {
                         const u = cellData.unit;
                         const pieceEl = document.createElement('div');
                         pieceEl.className = `piece team-${u.team}`;
-                        pieceEl.innerText = u.icon;
+                        pieceEl.innerHTML = u.icon; // Ora usa la grafica vettoriale
 
-                        // Barra Vita (HP)
                         const hpBarContainer = document.createElement('div');
                         hpBarContainer.className = 'hp-bar-container';
                         const hpBarFill = document.createElement('div');
@@ -765,7 +760,6 @@
 
                         hpBarContainer.appendChild(hpBarFill);
                         pieceEl.appendChild(hpBarContainer);
-
                         cellEl.appendChild(pieceEl);
                     }
 
@@ -778,34 +772,23 @@
         // === CALCOLO MOVIMENTO E PERK TERRENO ===
         function getEffectiveMovement(unit, terrainType) {
             let baseMov = unit.mov;
-            // Rallentamento Deserto (tranne se ignora deserto)
-            if (terrainType === 'deserto' && !unit.ignoresDesert) {
-                baseMov = Math.max(1, baseMov - 1);
-            }
-            // Rallentamento Bosco per Unità a cavallo/pesanti
-            if (terrainType === 'bosco' && unit.isMounted) {
-                baseMov = Math.max(1, baseMov - 1);
-            }
+            if (terrainType === 'deserto' && !unit.ignoresDesert) baseMov = Math.max(1, baseMov - 1);
+            if (terrainType === 'bosco' && unit.isMounted) baseMov = Math.max(1, baseMov - 1);
             return baseMov;
         }
 
         function getValidMoves(unit) {
             let moves = [];
-            // Movimento in stile Manhattan adattato dai costi terreno
             for (let y = 0; y < 10; y++) {
                 for (let x = 0; x < 10; x++) {
                     if (x === unit.x && y === unit.y) continue;
-                    if (boardState[y][x].unit) continue; // Cella occupata
-                    
+                    if (boardState[y][x].unit) continue;
                     const tSpec = TERRAINS[boardState[y][x].terrain];
-                    if (!tSpec.walk) continue; // Lago/Montagna impassabile
+                    if (!tSpec.walk) continue;
 
                     const dist = Math.abs(x - unit.x) + Math.abs(y - unit.y);
                     const effectiveMov = getEffectiveMovement(unit, boardState[y][x].terrain);
-
-                    if (dist <= effectiveMov) {
-                        moves.push({ x, y });
-                    }
+                    if (dist <= effectiveMov) moves.push({ x, y });
                 }
             }
             return moves;
@@ -818,9 +801,7 @@
                     const targetUnit = boardState[y][x].unit;
                     if (targetUnit && targetUnit.team !== unit.team) {
                         const dist = Math.abs(x - unit.x) + Math.abs(y - unit.y);
-                        if (dist <= unit.range) {
-                            targets.push({ x, y, unit: targetUnit });
-                        }
+                        if (dist <= unit.range) targets.push({ x, y, unit: targetUnit });
                     }
                 }
             }
@@ -830,10 +811,9 @@
         // === GESTIONE CLICK ED AZIONI GIOCATORE ===
         function handleCellClick(x, y) {
             if (currentTurn !== 'player' || gameOver) return;
-
             const clickedCell = boardState[y][x];
 
-            // 1. Click su una propria pedina
+            // 1. Seleziona una tua pedina
             if (clickedCell.unit && clickedCell.unit.team === 'player') {
                 activeUnit = clickedCell.unit;
                 updateUnitDetailBox(activeUnit);
@@ -841,10 +821,9 @@
                 return;
             }
 
-            // Se nessuna pedina era attiva, esci
             if (!activeUnit) return;
 
-            // 2. Tenta Attacco se clicco su un nemico a portata
+            // 2. Attacco (Fase finale del turno)
             if (clickedCell.unit && clickedCell.unit.team === 'enemy') {
                 const validAttacks = getValidAttackTargets(activeUnit);
                 if (validAttacks.some(a => a.x === x && a.y === y)) {
@@ -856,30 +835,28 @@
                 }
             }
 
-            // 3. Tenta Movimento in casella vuota
+            // 3. Movimento
             if (!clickedCell.unit && !activeUnit.hasMoved) {
                 const validMoves = getValidMoves(activeUnit);
                 if (validMoves.some(m => m.x === x && m.y === y)) {
-                    // Sposta
                     boardState[activeUnit.y][activeUnit.x].unit = null;
                     activeUnit.x = x;
                     activeUnit.y = y;
                     boardState[y][x].unit = activeUnit;
                     activeUnit.hasMoved = true;
 
-                    logAction(`${activeUnit.name} si sposta in (${x+1}, ${y+1}) [${TERRAINS[clickedCell.terrain].name}]`);
+                    logAction(`${activeUnit.name} si sposta in (${x+1}, ${y+1}).`);
                     
-                    // Verifica se può ancora attaccare qualcuno
+                    // Controllo stile Scacchi: se ti sei mosso ma non hai nemici da colpire, il turno passa a lui!
                     const remainingAttacks = getValidAttackTargets(activeUnit);
                     if (remainingAttacks.length === 0) {
-                        activeUnit.hasAttacked = true; // Nessun bersaglio, azzera turno per questa unità
+                        activeUnit.hasAttacked = true;
+                        passTurn(); 
+                    } else {
+                        logAction("Puoi attaccare un nemico vicino o passare il turno!");
                     }
-
                     renderBoard();
-                    checkTurnEnd();
                     return;
-                } else {
-                    logAction("Casella non raggiungibile!");
                 }
             }
         }
@@ -888,7 +865,6 @@
             let baseDmg = attacker.atk;
             const defenderTerrain = boardState[defender.y][defender.x].terrain;
 
-            // PERK TERRENO DIFESA: Il bosco riduce il danno subito del 20%
             if (defenderTerrain === 'bosco') {
                 baseDmg = Math.round(baseDmg * 0.8);
                 logAction(`🌲 Copertura del Bosco! Danno ridotto.`);
@@ -896,9 +872,9 @@
 
             defender.currentHp -= baseDmg;
             attacker.hasAttacked = true;
-            attacker.hasMoved = true;
+            attacker.hasMoved = true; // Consuma tutta l'azione
 
-            logAction(`💥 ${attacker.name} attacca ${defender.name} infliggendo ${baseDmg} danni!`);
+            logAction(`💥 ${attacker.name} infligge ${baseDmg} danni a ${defender.name}!`);
 
             if (defender.currentHp <= 0) {
                 logAction(`☠️ ${defender.name} è stato eliminato!`);
@@ -909,14 +885,9 @@
 
             renderBoard();
             checkVictory();
-            if (!gameOver) checkTurnEnd();
-        }
-
-        function checkTurnEnd() {
-            // Controlla se tutte le unità del giocatore hanno agito
-            const allDone = playerUnits.every(u => u.hasMoved && u.hasAttacked);
-            if (allDone) {
-                passTurn();
+            // Dopo un attacco, il turno finisce inevitabilmente (regola scacchi)
+            if (!gameOver) {
+                setTimeout(passTurn, 600); 
             }
         }
 
@@ -929,10 +900,10 @@
                 updateUI();
                 renderBoard();
                 logAction("--- Turno del Computer ---");
-                setTimeout(aiTurnExecution, 800);
+                setTimeout(aiTurnExecution, 1000);
             } else {
                 currentTurn = 'player';
-                // Resetta azioni unità giocatore
+                // Resetta azioni del giocatore
                 playerUnits.forEach(u => { u.hasMoved = false; u.hasAttacked = false; });
                 activeUnit = null;
                 updateUI();
@@ -944,67 +915,63 @@
         // === INTELLIGENZA ARTIFICIALE COMPUTER ===
         function aiTurnExecution() {
             if (gameOver) return;
-
-            // Resetta unità nemiche
             enemyUnits.forEach(u => { u.hasMoved = false; u.hasAttacked = false; });
 
-            // Cicla su tutte le unità nemiche ed esegui la mossa in base alla difficoltà
-            enemyUnits.forEach(aiUnit => {
-                if (aiUnit.currentHp <= 0) return;
+            // Il computer muove UNA SOLA pedina
+            let bestAttacker = null;
+            let targetToHit = null;
 
-                // 1. Cerca bersagli adiacenti per attaccare subito
-                let attackTargets = getValidAttackTargets(aiUnit);
+            // Priorità: se qualcuno può sparare, lo fa subito
+            for (let u of enemyUnits) {
+                let targets = getValidAttackTargets(u);
+                if (targets.length > 0) {
+                    bestAttacker = u;
+                    targetToHit = targets[0].unit;
+                    break;
+                }
+            }
 
-                if (attackTargets.length > 0) {
-                    // Scegli bersaglio con meno vita se Normale/Difficile
-                    if (selectedDifficulty !== 'Facile') {
-                        attackTargets.sort((a, b) => a.unit.currentHp - b.unit.currentHp);
-                    }
-                    executeAttack(aiUnit, attackTargets[0].unit);
-                } else {
-                    // 2. Altrimenti, spostati verso l'unità del giocatore più vicina
-                    let closestPlayerUnit = null;
-                    let minDist = 999;
+            if (bestAttacker && targetToHit) {
+                activeUnit = bestAttacker;
+                renderBoard();
+                setTimeout(() => executeAttack(bestAttacker, targetToHit), 600);
+            } else {
+                // Nessuno a tiro: sceglie un'unità a caso e la avvicina a te
+                const randomUnit = enemyUnits[Math.floor(Math.random() * enemyUnits.length)];
+                
+                let closestPlayer = playerUnits[0];
+                let minDist = 999;
+                playerUnits.forEach(pu => {
+                    let d = Math.abs(pu.x - randomUnit.x) + Math.abs(pu.y - randomUnit.y);
+                    if(d < minDist) { minDist = d; closestPlayer = pu; }
+                });
 
-                    playerUnits.forEach(pu => {
-                        let d = Math.abs(pu.x - aiUnit.x) + Math.abs(pu.y - aiUnit.y);
-                        if (d < minDist) {
-                            minDist = d;
-                            closestPlayerUnit = pu;
-                        }
-                    });
-
-                    if (closestPlayerUnit) {
-                        let validMoves = getValidMoves(aiUnit);
-                        if (validMoves.length > 0) {
-                            // Seleziona la mossa che avvicina di più al giocatore
-                            validMoves.sort((a, b) => {
-                                let distA = Math.abs(a.x - closestPlayerUnit.x) + Math.abs(a.y - closestPlayerUnit.y);
-                                let distB = Math.abs(b.x - closestPlayerUnit.x) + Math.abs(b.y - closestPlayerUnit.y);
-                                return distA - distB;
-                            });
-
-                            let bestMove = validMoves[0];
-                            boardState[aiUnit.y][aiUnit.x].unit = null;
-                            aiUnit.x = bestMove.x;
-                            aiUnit.y = bestMove.y;
-                            boardState[bestMove.y][bestMove.x].unit = aiUnit;
-
-                            logAction(`🤖 ${aiUnit.name} avanza verso le tue posizioni.`);
-
-                            // Riprova ad attaccare dopo essersi mosso
-                            let postMoveTargets = getValidAttackTargets(aiUnit);
-                            if (postMoveTargets.length > 0) {
-                                executeAttack(aiUnit, postMoveTargets[0].unit);
-                            }
-                        }
+                if (closestPlayer) {
+                    let validMoves = getValidMoves(randomUnit);
+                    if (validMoves.length > 0) {
+                        validMoves.sort((a, b) => {
+                            let da = Math.abs(a.x - closestPlayer.x) + Math.abs(a.y - closestPlayer.y);
+                            let db = Math.abs(b.x - closestPlayer.x) + Math.abs(b.y - closestPlayer.y);
+                            return da - db;
+                        });
+                        
+                        let bestMove = validMoves[0];
+                        boardState[randomUnit.y][randomUnit.x].unit = null;
+                        randomUnit.x = bestMove.x;
+                        randomUnit.y = bestMove.y;
+                        boardState[bestMove.y][bestMove.x].unit = randomUnit;
+                        logAction(`🤖 ${randomUnit.name} si posiziona.`);
                     }
                 }
-            });
-
-            setTimeout(() => {
-                passTurn();
-            }, 600);
+                
+                // Se, dopo essersi mossa, trova un bersaglio a tiro, attacca. Altrimenti fine turno.
+                let postMoveTargets = getValidAttackTargets(randomUnit);
+                if (postMoveTargets.length > 0) {
+                    setTimeout(() => executeAttack(randomUnit, postMoveTargets[0].unit), 600);
+                } else {
+                    setTimeout(passTurn, 600);
+                }
+            }
         }
 
         // === UTILITIES E STATO INTERFACCIA ===
