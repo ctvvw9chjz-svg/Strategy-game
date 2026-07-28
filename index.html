@@ -214,16 +214,17 @@
             vuoto: { id: 'vuoto', icon: '', walk: false }
         };
 
-        const GRID_SIZE = 16;
+                const GRID_SIZE = 16;
         let selectedEra = 'fantasy', selectedDifficulty = 'Normale';
         let playerRosterKeys = [], boardState = [], playerUnits = [], enemyUnits = [];
         
         let gameState = 'config'; // config, deploy, playing, gameover
         let currentTurn = 'player';
-        let deployTurn = 'player'; // Chi piazza la pedina
+        let deployTurn = 'player';
         let activeUnit = null;
         let actionsLeft = 3;
         let pDeployQueue = [], eDeployQueue = [];
+        let selectedDeployUnitIndex = -1; // TRACCIA LA TRUPPA SCELTA PER LO SCHIERAMENTO
 
         // === FASE 1 & 2: Menu e Draft ===
         function selectEra(era) { selectedEra = era; document.querySelectorAll('#era-group button').forEach(b => b.classList.toggle('selected', b.innerText.toLowerCase().includes(era))); }
@@ -261,6 +262,7 @@
         function initGame() {
             gameState = 'deploy'; 
             document.getElementById('action-log').innerHTML = '';
+            selectedDeployUnitIndex = -1; // Reset selezione
             
             // Inizializza truppe
             playerUnits = []; enemyUnits = [];
@@ -275,9 +277,8 @@
 
             generateMapAndSpawns();
             
-            // Inizia lo schieramento alternato (testacroce per chi parte)
             deployTurn = Math.random() < 0.5 ? 'player' : 'enemy';
-            logAction(`Mappa Generata! Il sorteggio dice che inizia: ${deployTurn === 'player' ? 'TU' : 'COMPUTER'}`);
+            logAction(`Mappa Generata! Il sorteggio dice che inizia a piazzare: ${deployTurn === 'player' ? 'TU' : 'COMPUTER'}`);
             
             updateUI();
             renderBoard();
@@ -310,7 +311,7 @@
                 }
             });
 
-            // Generazione 3 Zone Sparse per ogni Team (Ognuna 5 caselle)
+            // Generazione 3 Zone Sparse per ogni Team
             createSpawnZones('player', 3);
             createSpawnZones('enemy', 3);
         }
@@ -323,10 +324,8 @@
                 let cx = Math.floor(Math.random() * GRID_SIZE);
                 let cy = Math.floor(Math.random() * GRID_SIZE);
                 
-                // Evita di creare spawn sui buchi o sopra ad altri spawn
                 if(boardState[cy][cx].terrain === 'vuoto' || boardState[cy][cx].spawnTeam) continue;
                 
-                // BFS per trovare 5 caselle adiacenti valide
                 let queue = [{x: cx, y: cy}];
                 let currentZone = [];
                 
@@ -354,11 +353,17 @@
             }
         }
 
+        // NUOVA FUNZIONE: Seleziona chi schierare
+        function selectDeployUnit(idx) {
+            if(gameState !== 'deploy' || deployTurn !== 'player') return;
+            selectedDeployUnitIndex = idx;
+            updateUI();
+        }
+
         // === FASE SCHIERAMENTO (Alternato) ===
         function aiDeployUnit() {
             if(gameState !== 'deploy' || eDeployQueue.length === 0) return;
             
-            // Trova tutte le caselle spawn nemiche libere
             let validSpots = [];
             for (let y = 0; y < GRID_SIZE; y++) {
                 for (let x = 0; x < GRID_SIZE; x++) {
@@ -382,11 +387,11 @@
 
         function checkEndDeployment(nextTurn) {
             deployTurn = nextTurn;
+            selectedDeployUnitIndex = -1; // Reset selezione al cambio turno
             renderBoard();
             
             if(pDeployQueue.length === 0 && eDeployQueue.length === 0) {
                 gameState = 'playing';
-                // Casuale chi inizia la partita vera e propria
                 currentTurn = Math.random() < 0.5 ? 'player' : 'enemy';
                 actionsLeft = 3;
                 logAction(`💥 SCHIERAMENTO COMPLETATO! Inizia la battaglia il: ${currentTurn === 'player' ? 'GIOCATORE' : 'COMPUTER'}`);
@@ -396,7 +401,6 @@
                 updateUI();
                 setTimeout(aiDeployUnit, 600);
             } else if (deployTurn === 'player' && pDeployQueue.length === 0 && eDeployQueue.length > 0) {
-                // Se io ho finito ma il bot no
                 checkEndDeployment('enemy');
             } else {
                 updateUI();
@@ -412,7 +416,7 @@
             if (gameState === 'playing' && activeUnit && currentTurn === 'player' && !activeUnit.hasActed && actionsLeft > 0) {
                 validMoves = getValidMoves(activeUnit);
                 validAttacks = getValidAttackTargets(activeUnit);
-                canCamp = true; // Può cliccare su se stesso
+                canCamp = true; 
             }
 
             for (let y = 0; y < GRID_SIZE; y++) {
@@ -425,13 +429,11 @@
                         div.innerHTML += `<span class="terrain-icon">${TERRAINS[cell.terrain].icon}</span>`;
                     }
 
-                    // Highlight Spawn
                     if(gameState === 'deploy') {
                         if(cell.spawnTeam === 'player' && !cell.unit) div.classList.add('spawn-p');
                         if(cell.spawnTeam === 'enemy' && !cell.unit) div.classList.add('spawn-e');
                     }
                     
-                    // Highlight Actions
                     if(activeUnit && activeUnit.x === x && activeUnit.y === y) {
                         div.classList.add('selected');
                         if(canCamp) div.classList.add('valid-camp');
@@ -439,7 +441,6 @@
                     if(validMoves.some(m => m.x===x && m.y===y)) div.classList.add('valid-move');
                     if(validAttacks.some(a => a.x===x && a.y===y)) div.classList.add('valid-attack');
 
-                    // Disegna Unità
                     if (cell.unit) {
                         let u = cell.unit;
                         calcBuffs(u);
@@ -448,12 +449,10 @@
                         piece.className = `piece team-${u.team} ${u.hasActed ? 'acted' : ''}`;
                         piece.innerHTML = u.icon;
                         
-                        // Icone Status
                         if(u.isCamped) piece.innerHTML += `<span class="status-camp" title="Accampato (+Difesa, Curato)">⛺</span>`;
                         if(u.killBuff) piece.innerHTML += `<span class="status-icon" style="color:orange" title="Furia (+Danno)">🔥</span>`;
                         else if(u.surrounded) piece.innerHTML += `<span class="status-icon" style="color:red" title="Accerchiato (-Danno)">⚠️</span>`;
 
-                        // HP Bar
                         let pct = Math.max(0, (u.currentHp / u.hp) * 100);
                         let color = pct < 35 ? '#e53935' : (pct < 65 ? '#fdd835' : '#00e676');
                         piece.innerHTML += `<div class="hp-bar-container"><div class="hp-bar-fill" style="width:${pct}%; background:${color};"></div></div>`;
@@ -465,6 +464,7 @@
                 }
             }
             updateAPDisplay();
+            updateUI(); // Assicura che la UI di destra sia sempre allineata
         }
 
         // === REGOLE E CALCOLI ===
@@ -536,7 +536,11 @@
             // FASE DEPLOY GIOCATORE
             if (gameState === 'deploy') {
                 if(deployTurn === 'player' && cell.spawnTeam === 'player' && !cell.unit && pDeployQueue.length > 0) {
-                    let u = pDeployQueue.shift();
+                    if(selectedDeployUnitIndex === -1) {
+                        logAction("⚠️ Prima clicca su una truppa dal menu a destra per selezionarla!");
+                        return;
+                    }
+                    let u = pDeployQueue.splice(selectedDeployUnitIndex, 1)[0];
                     u.x = x; u.y = y; cell.unit = u; playerUnits.push(u);
                     logAction(`Hai schierato ${u.name}.`);
                     checkEndDeployment('enemy');
@@ -548,10 +552,9 @@
 
             // 1. Seleziona unità giocabile
             if (cell.unit && cell.unit.team === 'player' && !cell.unit.hasActed) {
-                // Se era già selezionata -> ACCAMPATI (Cura e Fortifica)
                 if (activeUnit && activeUnit.id === cell.unit.id) {
                     activeUnit.isCamped = true;
-                    activeUnit.currentHp = Math.min(activeUnit.hp, activeUnit.currentHp + 20); // Cura 20 HP
+                    activeUnit.currentHp = Math.min(activeUnit.hp, activeUnit.currentHp + 20);
                     activeUnit.hasActed = true;
                     actionsLeft--;
                     logAction(`⛺ ${activeUnit.name} si accampa! Recupera 20 HP e alza la difesa.`);
@@ -569,7 +572,7 @@
 
             if (!activeUnit || actionsLeft <= 0 || activeUnit.hasActed) return;
 
-            // 2. Attacco (-1 PA, Esaurisce unità)
+            // 2. Attacco
             if (cell.unit && cell.unit.team === 'enemy') {
                 if (getValidAttackTargets(activeUnit).some(a => a.x===x && a.y===y)) {
                     executeAttack(activeUnit, cell.unit, false);
@@ -577,10 +580,10 @@
                 }
             }
 
-            // 3. Movimento (-1 PA, Esaurisce unità, Rimuove Accampamento)
+            // 3. Movimento
             if (!cell.unit) {
                 if (getValidMoves(activeUnit).some(m => m.x===x && m.y===y)) {
-                    activeUnit.isCamped = false; // Muovendosi perde il perk
+                    activeUnit.isCamped = false; 
                     boardState[activeUnit.y][activeUnit.x].unit = null;
                     activeUnit.x = x; activeUnit.y = y;
                     boardState[y][x].unit = activeUnit;
@@ -597,35 +600,31 @@
             }
         }
 
-        // isCounter: booleano per sapere se è un attacco base o un contrattacco automatico
         function executeAttack(atkUnit, defUnit, isCounter) {
             calcBuffs(atkUnit); 
             
             let dmg = atkUnit.atk;
             
-            // Se è un contrattacco, applica il modificatore (Cecchini faranno male, Colossi bene)
             if (isCounter) {
                 dmg = Math.round(dmg * atkUnit.counterMod);
             } else {
-                // Modificatori normali
                 if(atkUnit.surrounded) dmg -= 15;
                 if(atkUnit.killBuff) { dmg += 15; atkUnit.killBuff = false; }
             }
             
-            // Modificatori Difensore (Terreno & Accampamento)
             let defTerrain = boardState[defUnit.y][defUnit.x].terrain;
             if(defTerrain === 'citta') dmg = Math.round(dmg * 0.7);
             if(defTerrain === 'bosco') dmg = Math.round(dmg * 0.8);
-            if(defUnit.isCamped) dmg = Math.round(dmg * 0.7); // -30% se accampato!
+            if(defUnit.isCamped) dmg = Math.round(dmg * 0.7);
 
-            dmg = Math.max(5, dmg); // Almeno 5 danni
+            dmg = Math.max(5, dmg); 
 
             defUnit.currentHp -= dmg;
             
             if(!isCounter) {
                 atkUnit.hasActed = true;
                 actionsLeft--;
-                atkUnit.isCamped = false; // Attaccare annulla l'accampamento
+                atkUnit.isCamped = false; 
                 logAction(`⚔️ ${atkUnit.name} spara a ${defUnit.name}: ${dmg} danni!`);
             } else {
                 logAction(`↪️ ${atkUnit.name} CONTRATTACCA: ${dmg} danni a ${defUnit.name}!`);
@@ -638,13 +637,11 @@
                 enemyUnits = enemyUnits.filter(u => u.id !== defUnit.id);
                 playerUnits = playerUnits.filter(u => u.id !== defUnit.id);
             } else if (!isCounter) {
-                // IL DIFENSORE È SOPRAVVISSUTO: Può contrattaccare se l'attaccante è a tiro?
                 let dist = Math.abs(atkUnit.x - defUnit.x) + Math.abs(atkUnit.y - defUnit.y);
                 let defRange = defUnit.range + (boardState[defUnit.y][defUnit.x].terrain === 'collina' ? 1 : 0);
                 
                 if (dist <= defRange) {
                     if(dist === 1 || checkLineOfSight(defUnit.x, defUnit.y, atkUnit.x, atkUnit.y)) {
-                        // Ritardo visivo per il contrattacco
                         setTimeout(() => {
                             executeAttack(defUnit, atkUnit, true);
                             renderBoard();
@@ -652,7 +649,7 @@
                         }, 500);
                         activeUnit = null;
                         renderBoard();
-                        return; // Esce per attendere il timeout
+                        return; 
                     }
                 }
             }
@@ -664,12 +661,8 @@
 
         // === FLUSSO TURNI E IA ===
         function checkTurnEnd() {
-            // Conta quante unità POSSONO ancora agire
             let canActCount = currentTurn === 'player' ? playerUnits.filter(u => !u.hasActed).length : enemyUnits.filter(u => !u.hasActed).length;
-            
-            if (actionsLeft <= 0 || canActCount === 0) {
-                passTurn();
-            }
+            if (actionsLeft <= 0 || canActCount === 0) passTurn();
         }
 
         function forcePassTurn() {
@@ -684,13 +677,13 @@
             
             if (currentTurn === 'player') {
                 currentTurn = 'enemy'; activeUnit = null; actionsLeft = 3;
-                enemyUnits.forEach(u => u.hasActed = false); // Ricarica IA
+                enemyUnits.forEach(u => u.hasActed = false); 
                 updateUI(); renderBoard();
                 logAction("--- TURNO NEMICO ---");
                 setTimeout(aiTurn, 1000);
             } else {
                 currentTurn = 'player'; activeUnit = null; actionsLeft = 3;
-                playerUnits.forEach(u => u.hasActed = false); // Ricarica Player
+                playerUnits.forEach(u => u.hasActed = false); 
                 updateUI(); renderBoard();
                 logAction("--- TUO TURNO ---");
             }
@@ -704,7 +697,6 @@
             if(actionsLeft > 0 && availableUnits.length > 0) {
                 let acted = false;
                 
-                // 1. Cerca Bersaglio Facile
                 for(let u of availableUnits) {
                     let targets = getValidAttackTargets(u);
                     if(targets.length > 0) {
@@ -714,12 +706,10 @@
                     }
                 }
 
-                // 2. Se nessuno può attaccare, muovi o accampati
                 if(!acted) {
                     let u = availableUnits[Math.floor(Math.random() * availableUnits.length)];
                     let moves = getValidMoves(u);
                     
-                    // IA Avanzata: se ha poca vita, 50% di possibilità di accamparsi e curarsi!
                     if (u.currentHp < u.hp * 0.4 && selectedDifficulty === 'Difficile' && Math.random() > 0.5) {
                         u.isCamped = true;
                         u.currentHp = Math.min(u.hp, u.currentHp + 20);
@@ -742,7 +732,7 @@
                         logAction(`🤖 ${u.name} si avvicina.`);
                         renderBoard();
                     } else {
-                        u.hasActed = true; // Salta il turno se bloccato
+                        u.hasActed = true; 
                     }
                 }
                 
@@ -762,23 +752,44 @@
         function updateUI() {
             let b = document.getElementById('turn-badge');
             let btnPass = document.getElementById('btn-pass');
+            let detailBox = document.getElementById('unit-detail-box');
             
             if(gameState === 'deploy') { 
                 b.innerText = `SCHIERA: ${deployTurn === 'player' ? 'TU' : 'NEMICO'}`; 
                 b.style.background = "#fff9c4"; b.style.color = "#f57f17"; 
                 btnPass.style.display = 'none';
+
+                if(deployTurn === 'player') {
+                    document.getElementById('status-msg').innerText = "Seleziona la truppa da schierare e clicca sulle zone gialle.";
+                    
+                    let html = '<div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center;">';
+                    pDeployQueue.forEach((u, i) => {
+                        let isSelected = i === selectedDeployUnitIndex;
+                        html += `<div onclick="selectDeployUnit(${i})" style="padding:8px; border:2px solid ${isSelected ? 'var(--accent-gold)' : 'var(--panel-border)'}; border-radius:8px; cursor:pointer; text-align:center; background:${isSelected ? '#fffdf8' : '#fff'}; width:45%; transition:all 0.2s; box-shadow: ${isSelected ? '0 4px 8px rgba(0,0,0,0.1)' : 'none'};">
+                            <div style="font-size:1.6rem; margin-bottom:4px;">${u.icon}</div>
+                            <div style="font-weight:bold; font-size:0.85rem;">${u.name}</div>
+                        </div>`;
+                    });
+                    html += '</div>';
+                    detailBox.innerHTML = html;
+                } else {
+                    document.getElementById('status-msg').innerText = "Attendi lo schieramento del computer...";
+                    detailBox.innerHTML = "";
+                }
             }
             else if(currentTurn === 'player') { 
                 b.innerText = "TUO TURNO"; 
                 b.style.background = "#e6f0fa"; b.style.color = "#2b5b84"; 
                 document.getElementById('status-msg').innerText = "Scegli un'unità grigia per agire.";
                 btnPass.style.display = 'block';
+                if(!activeUnit) detailBox.innerHTML = "Clicca su un'unità per i dettagli.";
             }
             else { 
                 b.innerText = "TURNO NEMICO"; 
                 b.style.background = "#fbebe8"; b.style.color = "#9e2a2b"; 
                 document.getElementById('status-msg').innerText = "Attendi la mossa..."; 
                 btnPass.style.display = 'none';
+                detailBox.innerHTML = "";
             }
         }
 
@@ -801,6 +812,7 @@
             let b = document.getElementById('action-log');
             b.innerHTML = `<div>${txt}</div>` + b.innerHTML;
         }
+
     </script>
 </body>
 </html>
