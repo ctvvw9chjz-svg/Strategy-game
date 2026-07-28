@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Strategia Elegante - Ultimate RTS</title>
+    <title>Strategia Elegante - Master Edition</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
@@ -42,7 +42,8 @@
         .unit-card.disabled { opacity: 0.5; pointer-events: none; }
         .u-icon { font-size: 1.8rem; width: 40px; text-align: center; }
         .u-info { flex: 1; font-size: 0.75rem; line-height: 1.2; }
-        .u-info strong { font-size: 0.9rem; display: block; margin-bottom: 2px;}
+        .u-info strong { font-size: 0.9rem; display: block; margin-bottom: 2px; color: var(--accent-gold-hover); }
+        .u-info .role-title { font-weight: bold; color: var(--text-main); font-size: 0.8rem; }
         
         .selected-roster { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 15px; min-height: 40px; }
         .roster-chip { background: #fff; border: 1px solid var(--accent-gold); padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; cursor: pointer; }
@@ -78,7 +79,7 @@
         .loot-icon { position: absolute; font-size: 1rem; text-shadow: 0 0 5px gold; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
 
-        /* HIGHLIGHTS */
+        /* HIGHLIGHTS E AZIONI */
         .cell.selected { box-shadow: inset 0 0 0 3px var(--accent-gold); z-index: 2; }
         .cell.valid-move::after { content: ''; position: absolute; width: 12px; height: 12px; background: var(--move-highlight); border: 2px solid #2e7d32; border-radius: 50%; z-index: 6;}
         .cell.valid-attack { box-shadow: inset 0 0 0 3px #d32f2f; z-index: 6;}
@@ -114,7 +115,7 @@
         .turn-badge { padding: 6px; border-radius: 8px; font-weight: 700; text-align: center; margin-bottom: 5px; font-size: 1rem; border: 2px solid;}
         
         .action-points { display: flex; justify-content: center; gap: 5px; margin-bottom: 8px; }
-        .ap-dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; }
+        .ap-dot { width: 12px; height: 12px; border-radius: 50%; background: #ccc; }
         .ap-dot.active { background: var(--accent-gold); box-shadow: 0 0 5px var(--accent-gold); }
 
         .log-box { height: 110px; overflow-y: auto; font-size: 0.75rem; background: #faf8f5; border: 1px solid #e2d9cc; padding: 5px; font-family: monospace; display: flex; flex-direction: column-reverse; }
@@ -150,11 +151,11 @@
             </div>
 
             <div style="flex:1; text-align:center; border-left:1px dashed var(--panel-border); padding-left:20px;">
-                <h3>Dimensione Squadra (Truppe a testa)</h3>
+                <h3>Dimensione Esercito (Mappa dinamica)</h3>
                 <div class="btn-group" id="unit-group">
-                    <button class="select-btn selected" onclick="selectUnitCount(5, this)">5 Unità</button>
-                    <button class="select-btn" onclick="selectUnitCount(7, this)">7 Unità</button>
-                    <button class="select-btn" onclick="selectUnitCount(10, this)">10 Unità</button>
+                    <button class="select-btn selected" onclick="selectUnitCount(5, this)">5 Unità (3 Azioni/Turno)</button>
+                    <button class="select-btn" onclick="selectUnitCount(7, this)">7 Unità (4 Azioni/Turno)</button>
+                    <button class="select-btn" onclick="selectUnitCount(10, this)">10 Unità (5 Azioni/Turno)</button>
                 </div>
 
                 <h3 style="margin-top:20px;">Fazioni in Gioco</h3>
@@ -165,7 +166,6 @@
                 </div>
                 
                 <div style="margin-top:15px; font-size: 0.9rem;">
-                    <p style="color:var(--text-muted); font-style:italic;">La grandezza della mappa si regolerà in automatico!</p>
                     <label><input type="checkbox" id="fogToggle" checked> Abilita Foschia di Guerra (Ombre Permanenti)</label><br>
                     <label><input type="checkbox" id="neutralToggle" checked> Genera Banditi Neutrali & Bottino (Loot)</label>
                 </div>
@@ -193,7 +193,7 @@
             </div>
 
             <div class="roster-panel" style="flex: 1.3; background: #faf8f5;">
-                <h3>Enciclopedia delle Truppe (Visione Aumentata)</h3>
+                <h3>Enciclopedia delle Truppe</h3>
                 <div class="draft-grid" id="draft-grid">
                     <!-- Generato via JS -->
                 </div>
@@ -211,10 +211,10 @@
             <div class="sidebar">
                 <div class="info-card">
                     <div id="turn-badge" class="turn-badge">...</div>
-                    <div class="action-points" id="ap-container"></div>
+                    <div class="action-points" id="ap-container" title="Punti Azione (PA) per questo turno."></div>
                     <div id="status-msg" style="font-weight: bold; text-align:center; font-size:0.85rem; margin-bottom:8px;">...</div>
                     
-                    <button id="btn-pass" style="width:100%; padding:6px; font-size:0.85rem; display:none;" onclick="forcePassTurn()">Passa il Turno</button>
+                    <button id="btn-pass" style="width:100%; padding:6px; font-size:0.85rem; display:none;" onclick="forcePassTurn()">Fine Turno (Passa)</button>
                     
                     <hr style="margin:8px 0; border:0; border-top:1px solid #ddd;">
                     <div id="unit-detail-box" style="font-size: 0.8rem; line-height:1.4; color: var(--text-main); min-height: 50px;">
@@ -243,6 +243,8 @@
         // === CONFIGURAZIONE ===
         let cfg = { era: 'fantasy', diff: 'Normale', mapSize: 16, unitCount: 5, teams: 2, fog: true, neutral: true };
         
+        let maxAP = 3; // Dinamico in base al numero di unità
+
         function updateBtnGroup(groupId, btn) {
             document.querySelectorAll(`#${groupId} .select-btn`).forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
@@ -252,49 +254,79 @@
         function selectUnitCount(count, btn) { cfg.unitCount = count; updateBtnGroup('unit-group', btn); }
         function selectTeams(val, btn) { cfg.teams = val; updateBtnGroup('team-group', btn); }
 
-        // --- IL ROSTER (VISIONE +3 per tutti per mappe grandi) ---
+        // --- DATABASE ROLES (Proprietà Comuni per descrizioni uniformi) ---
+        const DESC = {
+            fanteria: "Truppa base e solida. Perfetta per difendere e tenere la prima linea.",
+            arciere: "Colpisce da grandissima distanza ma subisce gravi danni in corpo a corpo.",
+            mago: "Danni bilanciati a media distanza. Un ottimo compromesso offensivo.",
+            esploratore: "Ignora i malus di movimento dei terreni (deserti) e rivela un'enorme porzione di mappa.",
+            cavaliereL: "Unità più veloce del gioco, eccellente per aggirare i fianchi nemici.",
+            cavaliereP: "Mobilità e resistenza eccellenti, ma i boschi la rallentano pesantemente.",
+            colosso: "Lentissimo, ma possiede la massima salute e infligge il massimo danno.",
+            difensore: "Protegge le truppe: fornisce passivamente +20% Difesa agli alleati adiacenti (a croce).",
+            guaritore: "Non attacca. Clicca su un alleato per ripristinargli 30 HP.",
+            stealth: "Invisibile a nemici e radar finché non si trova in una casella adiacente (Distanza 1) o spara.",
+            trasporto: "Per Caricare: selezionala e clicca su un alleato a tiro. Rilascia su casella vuota.",
+            orrore: "Emana un'aura malefica: i nemici adiacenti perdono il 20% di Attacco e Difesa."
+        };
+
+        const BASE_STATS = {
+            fanteria:   { hp: 120, atk: 35, def: 10, mov: 3, rng: 1, vis: 7, ctr: 1.0, role: "Fanteria", desc: DESC.fanteria },
+            arciere:    { hp: 60, atk: 45, def: 0, mov: 3, rng: 5, vis: 8, ctr: 0.2, role: "Arciere", desc: DESC.arciere },
+            mago:       { hp: 70, atk: 40, def: 5, mov: 3, rng: 3, vis: 7, ctr: 0.5, role: "Mago", desc: DESC.mago },
+            esploratore:{ hp: 55, atk: 25, def: 0, mov: 5, rng: 1, vis: 9, ctr: 0.7, role: "Esploratore", perk: 'agile', desc: DESC.esploratore },
+            cavaliereL: { hp: 80, atk: 30, def: 10, mov: 6, rng: 1, vis: 8, ctr: 0.8, role: "Cavaliere Leggero", perk: 'mounted', desc: DESC.cavaliereL },
+            cavaliereP: { hp: 110, atk: 45, def: 20, mov: 4, rng: 1, vis: 7, ctr: 0.9, role: "Cavaliere Pesante", perk: 'mounted', desc: DESC.cavaliereP },
+            colosso:    { hp: 160, atk: 55, def: 30, mov: 2, rng: 1, vis: 6, ctr: 1.0, role: "Colosso", desc: DESC.colosso },
+            difensore:  { hp: 140, atk: 25, def: 40, mov: 2, rng: 1, vis: 7, ctr: 0.8, role: "Difensore", perk: 'aura_shield', desc: DESC.difensore },
+            guaritore:  { hp: 60, atk: 15, def: 5, mov: 3, rng: 2, vis: 7, ctr: 0.2, role: "Guaritore", perk: 'healer', desc: DESC.guaritore },
+            stealth:    { hp: 50, atk: 50, def: 0, mov: 4, rng: 1, vis: 8, ctr: 0.5, role: "Assassino", perk: 'stealth', desc: DESC.stealth },
+            trasporto:  { hp: 100, atk: 10, def: 15, mov: 5, rng: 1, vis: 7, ctr: 0.2, role: "Trasporto", perk: 'transport', desc: DESC.trasporto },
+            orrore:     { hp: 80, atk: 30, def: 10, mov: 4, rng: 1, vis: 7, ctr: 0.8, role: "Terrore", perk: 'aura_terror', desc: DESC.orrore }
+        };
+
         const UNIT_TEMPLATES = {
             fantasy: {
-                fanteria:   { name: "Fanteria", icon: '<i class="fa-solid fa-khanda"></i>', hp: 120, atk: 35, def: 10, mov: 3, rng: 1, vis: 7, ctr: 1.0, desc: "Base, solida, tanto HP." },
-                arciere:    { name: "Arciere", icon: '<i class="fa-solid fa-feather-pointed"></i>', hp: 60, atk: 45, def: 0, mov: 3, rng: 5, vis: 8, ctr: 0.2, desc: "Lunga gittata, scarso contrattacco." },
-                mago:       { name: "Mago", icon: '<i class="fa-solid fa-wand-magic-sparkles"></i>', hp: 70, atk: 40, def: 5, mov: 3, rng: 3, vis: 7, ctr: 0.5, desc: "Danno medio a distanza." },
-                esploratore:{ name: "Folletto", icon: '<i class="fa-solid fa-leaf"></i>', hp: 55, atk: 25, def: 0, mov: 5, rng: 1, vis: 9, ctr: 0.7, desc: "Ampia visione, ignora deserto.", perk: 'agile' },
-                cavaliereL: { name: "Cav. Leggera", icon: '<i class="fa-solid fa-chess-knight"></i>', hp: 80, atk: 30, def: 10, mov: 6, rng: 1, vis: 8, ctr: 0.8, desc: "Velocissima, danno basso.", perk: 'mounted' },
-                cavaliereP: { name: "Cav. Pesante", icon: '<i class="fa-solid fa-horse-head"></i>', hp: 110, atk: 45, def: 20, mov: 4, rng: 1, vis: 7, ctr: 0.9, desc: "Lenta nei boschi, corazzata.", perk: 'mounted' },
-                colosso:    { name: "Golem", icon: '<i class="fa-solid fa-cube"></i>', hp: 160, atk: 55, def: 30, mov: 2, rng: 1, vis: 6, ctr: 1.0, desc: "Lento, tank puro." },
-                difensore:  { name: "Paladino", icon: '<i class="fa-solid fa-shield-halved"></i>', hp: 140, atk: 25, def: 40, mov: 2, rng: 1, vis: 7, ctr: 0.8, desc: "Aura (croce) +20% Def alleati.", perk: 'aura_shield' },
-                guaritore:  { name: "Chierico", icon: '<i class="fa-solid fa-hand-holding-medical"></i>', hp: 60, atk: 15, def: 5, mov: 3, rng: 2, vis: 7, ctr: 0.2, desc: "Al posto di attaccare, cura (30 HP).", perk: 'healer' },
-                stealth:    { name: "Assassino", icon: '<i class="fa-solid fa-mask"></i>', hp: 50, atk: 50, def: 0, mov: 4, rng: 1, vis: 8, ctr: 0.5, desc: "Invisibile finché non attacca.", perk: 'stealth' },
-                trasporto:  { name: "Carrozza", icon: '<i class="fa-solid fa-cart-flatbed"></i>', hp: 100, atk: 10, def: 15, mov: 5, rng: 1, vis: 7, ctr: 0.2, desc: "Ospita 1 alleato (cliccaci sopra).", perk: 'transport' },
-                orrore:     { name: "Banshee", icon: '<i class="fa-solid fa-ghost"></i>', hp: 80, atk: 30, def: 10, mov: 4, rng: 1, vis: 7, ctr: 0.8, desc: "Aura Terrore (3x3): -20% Atk/Def nemici.", perk: 'aura_terror' }
+                fanteria:   { ...BASE_STATS.fanteria, name: "Guerriero", icon: '<i class="fa-solid fa-khanda"></i>' },
+                arciere:    { ...BASE_STATS.arciere, name: "Arciere Elfico", icon: '<i class="fa-solid fa-feather-pointed"></i>' },
+                mago:       { ...BASE_STATS.mago, name: "Mago Arcano", icon: '<i class="fa-solid fa-wand-magic-sparkles"></i>' },
+                esploratore:{ ...BASE_STATS.esploratore, name: "Folletto Agile", icon: '<i class="fa-solid fa-leaf"></i>' },
+                cavaliereL: { ...BASE_STATS.cavaliereL, name: "Pony Express", icon: '<i class="fa-solid fa-chess-knight"></i>' },
+                cavaliereP: { ...BASE_STATS.cavaliereP, name: "Cavaliere Reale", icon: '<i class="fa-solid fa-horse-head"></i>' },
+                colosso:    { ...BASE_STATS.colosso, name: "Golem di Pietra", icon: '<i class="fa-solid fa-cube"></i>' },
+                difensore:  { ...BASE_STATS.difensore, name: "Paladino", icon: '<i class="fa-solid fa-shield-halved"></i>' },
+                guaritore:  { ...BASE_STATS.guaritore, name: "Chierico", icon: '<i class="fa-solid fa-hand-holding-medical"></i>' },
+                stealth:    { ...BASE_STATS.stealth, name: "Ombra", icon: '<i class="fa-solid fa-mask"></i>' },
+                trasporto:  { ...BASE_STATS.trasporto, name: "Carrozza", icon: '<i class="fa-solid fa-cart-flatbed"></i>' },
+                orrore:     { ...BASE_STATS.orrore, name: "Banshee", icon: '<i class="fa-solid fa-ghost"></i>' }
             },
             west: {
-                fanteria:   { name: "Milizia", icon: '<i class="fa-solid fa-person-rifle"></i>', hp: 120, atk: 35, def: 10, mov: 3, rng: 1, vis: 7, ctr: 1.0, desc: "Base, fucile standard." },
-                arciere:    { name: "Tiratore", icon: '<i class="fa-solid fa-crosshairs"></i>', hp: 60, atk: 45, def: 0, mov: 3, rng: 5, vis: 8, ctr: 0.2, desc: "Fucile di precisione." },
-                mago:       { name: "Pistolero", icon: '<i class="fa-solid fa-gun"></i>', hp: 70, atk: 40, def: 5, mov: 3, rng: 3, vis: 7, ctr: 0.5, desc: "Revolver veloce." },
-                esploratore:{ name: "Scout Nativo", icon: '<i class="fa-solid fa-campground"></i>', hp: 55, atk: 25, def: 0, mov: 5, rng: 1, vis: 9, ctr: 0.7, desc: "Esploratore.", perk: 'agile' },
-                cavaliereL: { name: "Pony Express", icon: '<i class="fa-solid fa-chess-knight"></i>', hp: 80, atk: 30, def: 10, mov: 6, rng: 1, vis: 8, ctr: 0.8, desc: "Molto veloce.", perk: 'mounted' },
-                cavaliereP: { name: "Cavalleria", icon: '<i class="fa-solid fa-horse-head"></i>', hp: 110, atk: 45, def: 20, mov: 4, rng: 1, vis: 7, ctr: 0.9, desc: "Soldati a cavallo pesanti.", perk: 'mounted' },
-                colosso:    { name: "Sceriffo", icon: '<i class="fa-solid fa-star"></i>', hp: 160, atk: 55, def: 30, mov: 2, rng: 1, vis: 6, ctr: 1.0, desc: "Fucile a pompa, duro a morire." },
-                difensore:  { name: "Barricata", icon: '<i class="fa-solid fa-shield-halved"></i>', hp: 140, atk: 25, def: 40, mov: 2, rng: 1, vis: 7, ctr: 0.8, desc: "Aura (croce) +20% Def alleati.", perk: 'aura_shield' },
-                guaritore:  { name: "Cerusico", icon: '<i class="fa-solid fa-hand-holding-medical"></i>', hp: 60, atk: 15, def: 5, mov: 3, rng: 2, vis: 7, ctr: 0.2, desc: "Cura alleati (30 HP).", perk: 'healer' },
-                stealth:    { name: "Fuorilegge", icon: '<i class="fa-solid fa-mask"></i>', hp: 50, atk: 50, def: 0, mov: 4, rng: 1, vis: 8, ctr: 0.5, desc: "Invisibile finché non attacca.", perk: 'stealth' },
-                trasporto:  { name: "Diligenza", icon: '<i class="fa-solid fa-cart-flatbed"></i>', hp: 100, atk: 10, def: 15, mov: 5, rng: 1, vis: 7, ctr: 0.2, desc: "Ospita 1 alleato.", perk: 'transport' },
-                orrore:     { name: "Becchino", icon: '<i class="fa-solid fa-skull"></i>', hp: 80, atk: 30, def: 10, mov: 4, rng: 1, vis: 7, ctr: 0.8, desc: "Aura Terrore: malus nemici.", perk: 'aura_terror' }
+                fanteria:   { ...BASE_STATS.fanteria, name: "Milizia", icon: '<i class="fa-solid fa-person-rifle"></i>' },
+                arciere:    { ...BASE_STATS.arciere, name: "Tiratore Scelto", icon: '<i class="fa-solid fa-crosshairs"></i>' },
+                mago:       { ...BASE_STATS.mago, name: "Pistolero", icon: '<i class="fa-solid fa-gun"></i>' },
+                esploratore:{ ...BASE_STATS.esploratore, name: "Scout Nativo", icon: '<i class="fa-solid fa-campground"></i>' },
+                cavaliereL: { ...BASE_STATS.cavaliereL, name: "Cacciatore", icon: '<i class="fa-solid fa-chess-knight"></i>' },
+                cavaliereP: { ...BASE_STATS.cavaliereP, name: "Cavalleria", icon: '<i class="fa-solid fa-horse-head"></i>' },
+                colosso:    { ...BASE_STATS.colosso, name: "Sceriffo Pesante", icon: '<i class="fa-solid fa-star"></i>' },
+                difensore:  { ...BASE_STATS.difensore, name: "Barricata", icon: '<i class="fa-solid fa-shield-halved"></i>' },
+                guaritore:  { ...BASE_STATS.guaritore, name: "Cerusico", icon: '<i class="fa-solid fa-hand-holding-medical"></i>' },
+                stealth:    { ...BASE_STATS.stealth, name: "Fuorilegge", icon: '<i class="fa-solid fa-mask"></i>' },
+                trasporto:  { ...BASE_STATS.trasporto, name: "Diligenza", icon: '<i class="fa-solid fa-cart-flatbed"></i>' },
+                orrore:     { ...BASE_STATS.orrore, name: "Becchino", icon: '<i class="fa-solid fa-skull"></i>' }
             },
             future: {
-                fanteria:   { name: "Soldato", icon: '<i class="fa-solid fa-user-astronaut"></i>', hp: 120, atk: 35, def: 10, mov: 3, rng: 1, vis: 7, ctr: 1.0, desc: "Fucile d'assalto base." },
-                arciere:    { name: "Railgun", icon: '<i class="fa-solid fa-satellite-dish"></i>', hp: 60, atk: 45, def: 0, mov: 3, rng: 5, vis: 8, ctr: 0.2, desc: "Artiglieria lunga." },
-                mago:       { name: "Plasma", icon: '<i class="fa-solid fa-bolt"></i>', hp: 70, atk: 40, def: 5, mov: 3, rng: 3, vis: 7, ctr: 0.5, desc: "Fucile plasma." },
-                esploratore:{ name: "Drone", icon: '<i class="fa-solid fa-rocket"></i>', hp: 55, atk: 25, def: 0, mov: 5, rng: 1, vis: 9, ctr: 0.7, desc: "Sensori ampi.", perk: 'agile' },
-                cavaliereL: { name: "Speeder", icon: '<i class="fa-solid fa-motorcycle"></i>', hp: 80, atk: 30, def: 10, mov: 6, rng: 1, vis: 8, ctr: 0.8, desc: "Hoverbike veloce.", perk: 'mounted' },
-                cavaliereP: { name: "Walker", icon: '<i class="fa-solid fa-robot"></i>', hp: 110, atk: 45, def: 20, mov: 4, rng: 1, vis: 7, ctr: 0.9, desc: "Esoscheletro.", perk: 'mounted' },
-                colosso:    { name: "Mech", icon: '<i class="fa-solid fa-microchip"></i>', hp: 160, atk: 55, def: 30, mov: 2, rng: 1, vis: 6, ctr: 1.0, desc: "Corazzata robotica." },
-                difensore:  { name: "Gen. Scudi", icon: '<i class="fa-solid fa-shield-halved"></i>', hp: 140, atk: 25, def: 40, mov: 2, rng: 1, vis: 7, ctr: 0.8, desc: "Aura Scudo alleati.", perk: 'aura_shield' },
-                guaritore:  { name: "Nano-Medico", icon: '<i class="fa-solid fa-hand-holding-medical"></i>', hp: 60, atk: 15, def: 5, mov: 3, rng: 2, vis: 7, ctr: 0.2, desc: "Ripara alleati (30 HP).", perk: 'healer' },
-                stealth:    { name: "Spettro", icon: '<i class="fa-solid fa-mask"></i>', hp: 50, atk: 50, def: 0, mov: 4, rng: 1, vis: 8, ctr: 0.5, desc: "Mimetismo ottico.", perk: 'stealth' },
-                trasporto:  { name: "APC", icon: '<i class="fa-solid fa-truck-fast"></i>', hp: 100, atk: 10, def: 15, mov: 5, rng: 1, vis: 7, ctr: 0.2, desc: "Trasporto truppe.", perk: 'transport' },
-                orrore:     { name: "Jammer", icon: '<i class="fa-solid fa-tower-broadcast"></i>', hp: 80, atk: 30, def: 10, mov: 4, rng: 1, vis: 7, ctr: 0.8, desc: "Indebolisce nemici vicini.", perk: 'aura_terror' }
+                fanteria:   { ...BASE_STATS.fanteria, name: "Soldato", icon: '<i class="fa-solid fa-user-astronaut"></i>' },
+                arciere:    { ...BASE_STATS.arciere, name: "Railgunner", icon: '<i class="fa-solid fa-satellite-dish"></i>' },
+                mago:       { ...BASE_STATS.mago, name: "Plasma Trooper", icon: '<i class="fa-solid fa-bolt"></i>' },
+                esploratore:{ ...BASE_STATS.esploratore, name: "Hover-Drone", icon: '<i class="fa-solid fa-rocket"></i>' },
+                cavaliereL: { ...BASE_STATS.cavaliereL, name: "Speeder", icon: '<i class="fa-solid fa-motorcycle"></i>' },
+                cavaliereP: { ...BASE_STATS.cavaliereP, name: "Walker", icon: '<i class="fa-solid fa-robot"></i>' },
+                colosso:    { ...BASE_STATS.colosso, name: "Battle-Mech", icon: '<i class="fa-solid fa-microchip"></i>' },
+                difensore:  { ...BASE_STATS.difensore, name: "Gen. Scudi", icon: '<i class="fa-solid fa-shield-halved"></i>' },
+                guaritore:  { ...BASE_STATS.guaritore, name: "Nano-Medico", icon: '<i class="fa-solid fa-hand-holding-medical"></i>' },
+                stealth:    { ...BASE_STATS.stealth, name: "Spettro", icon: '<i class="fa-solid fa-mask"></i>' },
+                trasporto:  { ...BASE_STATS.trasporto, name: "APC Blindato", icon: '<i class="fa-solid fa-truck-fast"></i>' },
+                orrore:     { ...BASE_STATS.orrore, name: "Jammer", icon: '<i class="fa-solid fa-tower-broadcast"></i>' }
             }
         };
 
@@ -311,7 +343,7 @@
         const TEAMS = ['player', 'enemy', 'team3', 'team4'];
         
         let board = [], units = [], loots = [];
-        let exploredMap = []; // Memoria FOW
+        let exploredMap = []; 
         
         let gameState = 'config', turnOrder = [], currentTeamIdx = 0;
         let activeUnit = null, actionsLeft = 3;
@@ -342,6 +374,7 @@
                     <div class="unit-card ${isFull ? 'disabled' : ''}" onclick="addToRoster('${key}')">
                         <div class="u-icon">${u.icon}</div>
                         <div class="u-info">
+                            <span class="role-title">${u.role}</span>
                             <strong>${u.name}</strong>
                             HP:${u.hp} | Atk:${u.atk} | Def:${u.def}%<br>
                             Mov:${u.mov} | Rng:${u.rng} | Vis:${u.vis}<br>
@@ -353,7 +386,7 @@
             const bar = document.getElementById('roster-bar'); bar.innerHTML = '';
             playerRosterKeys.forEach((k, i) => {
                 bar.innerHTML += `<div class="roster-chip" onclick="playerRosterKeys.splice(${i},1);updateDraftUI()">
-                    ${tpl[k].icon} ${tpl[k].name} <span style="color:red">✖</span></div>`;
+                    ${tpl[k].icon} <span style="font-weight:bold;">${tpl[k].role}</span> (${tpl[k].name}) <span style="color:red; margin-left:5px;">✖</span></div>`;
             });
             document.getElementById('draft-count').innerText = playerRosterKeys.length;
             document.getElementById('btn-start').style.display = playerRosterKeys.length === cfg.unitCount ? 'block' : 'none';
@@ -368,8 +401,9 @@
 
         // === FASE 3: GENERAZIONE E SCHIERAMENTO ===
         function startDeployment() {
-            // Calcolo Dimensione Mappa Dinamica
-            // Formula: Base 12 + (Squadre * 2) + (Truppe * 1.5)
+            // Set dynamic Action Points based on army size
+            maxAP = cfg.unitCount === 10 ? 5 : (cfg.unitCount === 7 ? 4 : 3);
+            
             cfg.mapSize = 12 + (cfg.teams * 2) + Math.floor(cfg.unitCount * 1.5);
             
             document.getElementById('screen-draft').classList.remove('active');
@@ -412,14 +446,14 @@
             document.getElementById('game-board').style.gridTemplateRows = `repeat(${cfg.mapSize}, 34px)`;
 
             currentTeamIdx = Math.floor(Math.random() * turnOrder.length);
-            logAction(`Mappa generata: ${cfg.mapSize}x${cfg.mapSize}. Inizia schieramento il team ${turnOrder[currentTeamIdx].toUpperCase()}`);
+            logAction(`Mappa generata: ${cfg.mapSize}x${cfg.mapSize}. Punti Azione per turno: ${maxAP}. Inizia schieramento il team ${turnOrder[currentTeamIdx].toUpperCase()}`);
             
             handleDeployTurn();
         }
 
         function createUnitObj(key, team) {
             let base = UNIT_TEMPLATES[cfg.era][key];
-            return { ...base, id: team+'_'+Math.random().toString(36).substr(2,5), team: team, key: key, currentHp: base.hp, hasActed: false, isCamped: false, killBuff: false, passenger: null, isVisible: true };
+            return { ...base, id: team+'_'+Math.random().toString(36).substr(2,5), team: team, key: key, currentHp: base.hp, hasActed: false, hasMovedThisTurn: false, isCamped: false, killBuff: false, passenger: null, isVisible: true };
         }
 
         function placeRandom(unit) {
@@ -466,17 +500,15 @@
                 }
             }
 
-            // Aree di schieramento a quadranti liberi (molte caselle casuali)
-            createSpawnZones('player', 0, 1); // Basso sx
-            createSpawnZones('enemy', 1, 0);   // Alto dx
-            if(cfg.teams >= 3) createSpawnZones('team3', 0, 0); // Alto sx
-            if(cfg.teams >= 4) createSpawnZones('team4', 1, 1); // Basso dx
+            createSpawnZones('player', 0, 1); 
+            createSpawnZones('enemy', 1, 0);   
+            if(cfg.teams >= 3) createSpawnZones('team3', 0, 0); 
+            if(cfg.teams >= 4) createSpawnZones('team4', 1, 1); 
         }
 
         function createSpawnZones(team, quadX, quadY) {
             let qW = Math.floor(cfg.mapSize / 2);
             let placed = 0, attempts = 0;
-            // Offriamo abbondanti caselle per poter mettere le truppe sparse
             let required = Math.max(12, cfg.unitCount * 2); 
             while(placed < required && attempts < 300) {
                 let cx = (quadX * qW) + Math.floor(Math.random() * (qW - 2)) + 1;
@@ -499,7 +531,7 @@
 
             if(allDone) {
                 gameState = 'playing';
-                currentTeamIdx = 0; actionsLeft = 3;
+                currentTeamIdx = 0; actionsLeft = maxAP;
                 logAction("🔥 SCHIERAMENTO COMPLETATO! Inizia la partita.");
                 if(turnOrder[currentTeamIdx] !== 'player') setTimeout(aiTurn, 1000);
                 updateUI(); renderBoard();
@@ -549,7 +581,10 @@
             units.forEach(u => {
                 u.auraDef = 0; u.auraAtkDrop = 0; u.surrounded = false;
                 
-                if(u.perk === 'stealth' && currentTeamIdx === turnOrder.indexOf(u.team)) u.isVisible = false;
+                // Stealth Rule: ALWAYS invisible by default, unless exactly ADJACENT (dist = 1) to an enemy.
+                if(u.perk === 'stealth') {
+                    u.isVisible = false;
+                }
                 
                 let eCount = 0;
                 units.forEach(other => {
@@ -563,6 +598,7 @@
 
                     if(other.team !== u.team && other.team !== 'neutral' && dist === 1) {
                         eCount++;
+                        // Reveal stealth ONLY if ADJACENT to an enemy.
                         if(u.perk === 'stealth') u.isVisible = true; 
                     }
                 });
@@ -587,7 +623,7 @@
                         let v = u.vis + (board[u.y][u.x].terrain === 'collina' ? 1 : 0);
                         if(dist <= v) {
                             visMap[y][x] = true;
-                            exploredMap[y][x] = true; // Salva in memoria
+                            exploredMap[y][x] = true; 
                         }
                     }
                 }
@@ -596,6 +632,7 @@
         }
 
         function getValidMoves(unit) {
+            if(unit.hasMovedThisTurn) return []; // Non può muoversi due volte nella stessa mossa
             let moves = [];
             for(let y=0; y<cfg.mapSize; y++) {
                 for(let x=0; x<cfg.mapSize; x++) {
@@ -630,10 +667,10 @@
                 if(unit.perk === 'healer') {
                     if(other.team === unit.team && dist <= myRng) acts.push({x: other.x, y: other.y, u: other, type: 'heal'});
                 } else if (unit.perk === 'transport' && unit.passenger && dist === 1 && !getUnitAt(other.x, other.y)) {
-                    // scarico truppe
+                    // scarico truppe gestito dopo
                 } else {
                     if(other.team !== unit.team && dist <= myRng && (dist===1 || checkLOS(unit.x,unit.y,other.x,other.y))) {
-                        // Se è stealth e invisibile, non puoi sparargli da lontano
+                        // Regola visiva stealth per attacco
                         if(other.perk === 'stealth' && !other.isVisible && unit.team !== other.team) return;
                         acts.push({x: other.x, y: other.y, u: other, type: 'atk'});
                     }
@@ -659,6 +696,16 @@
             return true;
         }
 
+        // === GESTIONE AZIONI FINALI (1 AP = Spostamento + Azione) ===
+        function finalizeUnitAction(u) {
+            u.hasActed = true;
+            u.hasMovedThisTurn = false;
+            actionsLeft--;
+            activeUnit = null;
+            renderBoard();
+            checkTurnEnd();
+        }
+
         // === RENDERING PRINCIPALE ===
         function renderBoard() {
             calcAurasAndStealth();
@@ -668,7 +715,7 @@
             let validMoves = [], validActs = [];
             let canCamp = false;
 
-            if (gameState === 'playing' && activeUnit && turnOrder[currentTeamIdx] === 'player' && !activeUnit.hasActed && actionsLeft > 0) {
+            if (gameState === 'playing' && activeUnit && turnOrder[currentTeamIdx] === 'player' && !activeUnit.hasActed) {
                 validMoves = getValidMoves(activeUnit);
                 validActs = getValidActions(activeUnit);
                 canCamp = true; 
@@ -693,7 +740,6 @@
                         div.innerHTML += `<span class="terrain-icon">${TERRAINS[cell.terrain].icon}</span>`;
                     }
 
-                    // Loot (mostralo solo se visibile)
                     if(isVisible) {
                         let loot = loots.find(l => l.x===x && l.y===y);
                         if(loot) div.innerHTML += `<div class="loot-icon">${loot.type==='heal'?'💖':'⚔️'}</div>`;
@@ -711,7 +757,6 @@
 
                     let u = getUnitAt(x,y);
                     if (u && !u.passenger) {
-                        // Le tue unità si vedono sempre. I nemici si vedono solo se isVisible è true e non sono stealth invisibili.
                         let isMyTeam = u.team === 'player';
                         let canRender = isMyTeam || (isVisible && (!u.perk==='stealth' || u.isVisible));
                         
@@ -741,7 +786,7 @@
             }
             updateAPDisplay();
             updateUI();
-            updateEnemyRoster(); // Aggiorna il pannello radar
+            updateEnemyRoster();
         }
 
         // === CLICK ===
@@ -751,11 +796,8 @@
                     if(selectedDeployUnitIndex === -1) { logAction("⚠️ Seleziona una truppa a destra!"); return; }
                     let u = pDeployQueue.splice(selectedDeployUnitIndex, 1)[0];
                     u.x = x; u.y = y; units.push(u);
-                    
-                    // Scopri subito la mappa attorno per aiutare nel piazzamento
                     exploredMap[y][x] = true;
-                    
-                    logAction(`Schierato: ${u.name}.`);
+                    logAction(`Schierato: ${u.role}.`);
                     currentTeamIdx = (currentTeamIdx + 1) % turnOrder.length;
                     handleDeployTurn();
                 }
@@ -766,11 +808,26 @@
 
             let occ = getUnitAt(x, y);
 
+            // LOGICA DI "FINE AZIONE SE SELEZIONO ALTRO" (Spostamento e fine)
+            if (activeUnit && activeUnit.hasMovedThisTurn) {
+                let validActs = getValidActions(activeUnit);
+                let act = validActs.find(a => a.x===x && a.y===y);
+                let isSelf = (x === activeUnit.x && y === activeUnit.y);
+                
+                if (!act && !isSelf) {
+                    // Ha mosso e ora clicca fuori per finire la mossa.
+                    logAction(`🏃 ${activeUnit.role} ha concluso lo spostamento.`);
+                    finalizeUnitAction(activeUnit);
+                    // Prosegue per eventualmente selezionare la nuova casella
+                }
+            }
+
             if (occ && occ.team === 'player' && !occ.hasActed) {
                 if (activeUnit && activeUnit.id === occ.id) {
                     activeUnit.isCamped = true;
                     activeUnit.currentHp = Math.min(activeUnit.hp, activeUnit.currentHp + 20);
-                    commitAction(`⛺ ${activeUnit.name} si accampa! (+Def/HP)`);
+                    logAction(`⛺ ${activeUnit.role} si accampa! (+Def/HP)`);
+                    finalizeUnitAction(activeUnit);
                     return;
                 }
                 activeUnit = occ;
@@ -782,6 +839,7 @@
 
             if (!activeUnit || actionsLeft <= 0 || activeUnit.hasActed) return;
 
+            // AZIONE
             let validActs = getValidActions(activeUnit);
             let act = validActs.find(a => a.x===x && a.y===y);
             
@@ -790,12 +848,14 @@
                     act.u = activeUnit.passenger;
                     act.u.x = x; act.u.y = y; act.u.passenger = null;
                     activeUnit.passenger = null;
-                    commitAction(`📦 ${activeUnit.name} sbarca truppe.`);
+                    logAction(`📦 ${activeUnit.role} sbarca le truppe.`);
+                    finalizeUnitAction(activeUnit);
                     return;
                 }
                 if(act.type === 'heal') {
                     act.u.currentHp = Math.min(act.u.hp, act.u.currentHp + 30);
-                    commitAction(`💖 ${activeUnit.name} cura ${act.u.name}!`);
+                    logAction(`💖 ${activeUnit.role} cura ${act.u.role}!`);
+                    finalizeUnitAction(activeUnit);
                     return;
                 }
                 if(act.type === 'atk') {
@@ -804,16 +864,16 @@
                 }
             }
 
+            // SPOSTAMENTO (Non termina il turno, permette l'attacco)
             let validMoves = getValidMoves(activeUnit);
             let move = validMoves.find(m => m.x===x && m.y===y);
             if (move) {
                 activeUnit.isCamped = false; 
-                
                 if(move.isLoad) {
                     activeUnit.passenger = move.target;
                     move.target.x = -1; move.target.y = -1; 
                     activeUnit.x = x; activeUnit.y = y;
-                    commitAction(`🚚 ${move.target.name} sale a bordo!`);
+                    logAction(`🚚 ${move.target.role} sale a bordo!`);
                 } else {
                     activeUnit.x = x; activeUnit.y = y;
                     let lIdx = loots.findIndex(l => l.x===x && l.y===y);
@@ -823,15 +883,10 @@
                         if(l.type==='dmg') { activeUnit.killBuff = true; logAction("⚔️ Loot Danni Extra!"); }
                     }
                     if(activeUnit.perk === 'stealth') activeUnit.isVisible = false; 
-                    commitAction(`🏃 ${activeUnit.name} si sposta.`);
                 }
+                activeUnit.hasMovedThisTurn = true;
+                renderBoard(); // Renderizza ma non toglie il PA finché non attacca o chiude
             }
-        }
-
-        function commitAction(msg) {
-            activeUnit.hasActed = true; actionsLeft--;
-            logAction(msg);
-            activeUnit = null; renderBoard(); checkTurnEnd();
         }
 
         // === COMBATTIMENTO ===
@@ -857,14 +912,13 @@
             defU.currentHp -= dmg;
             
             if(!isCounter) {
-                atkU.hasActed = true; actionsLeft--; atkU.isCamped = false; 
-                logAction(`⚔️ ${atkU.name} ➔ ${defU.name}: ${dmg} dmg!`);
+                logAction(`⚔️ ${atkU.role} ➔ ${defU.role}: ${dmg} dmg!`);
             } else {
-                logAction(`↪️ ${atkU.name} [Contrattacco]: ${dmg} dmg!`);
+                logAction(`↪️ ${atkU.role} [Contrattacco]: ${dmg} dmg!`);
             }
 
             if (defU.currentHp <= 0) {
-                logAction(`☠️ ${defU.name} (${defU.team}) eliminato!`);
+                logAction(`☠️ ${defU.role} (${defU.team}) eliminato!`);
                 if(!isCounter) atkU.killBuff = true;
                 if(defU.passenger) logAction(`☠️ Passeggero morto nello schianto!`);
                 units = units.filter(u => u.id !== defU.id && (!defU.passenger || u.id !== defU.passenger.id));
@@ -878,13 +932,14 @@
                             renderBoard();
                             if(!checkVictory() && turnOrder[currentTeamIdx] === 'player') checkTurnEnd();
                         }, 600);
-                        activeUnit = null; renderBoard(); return; 
+                        if(!isCounter) finalizeUnitAction(atkU);
+                        return; 
                     }
                 }
             }
 
-            activeUnit = null; renderBoard();
-            if(!checkVictory() && !isCounter) checkTurnEnd();
+            if(!isCounter) finalizeUnitAction(atkU);
+            else { activeUnit = null; renderBoard(); if(!checkVictory()) checkTurnEnd(); }
         }
 
         // === GESTIONE TURNI E IA ===
@@ -893,18 +948,24 @@
             let canAct = units.filter(u => u.team === t && !u.hasActed && !u.passenger).length;
             if (actionsLeft <= 0 || canAct === 0) passTurn();
         }
-        function forcePassTurn() { if(gameState==='playing' && turnOrder[currentTeamIdx]==='player') { logAction("Fine turno anticipata."); passTurn(); } }
+        function forcePassTurn() { 
+            if(gameState==='playing' && turnOrder[currentTeamIdx]==='player') { 
+                logAction("Fine turno anticipata."); 
+                if(activeUnit) { activeUnit.hasMovedThisTurn = false; activeUnit = null; }
+                passTurn(); 
+            } 
+        }
 
         function passTurn() {
             if(gameState !== 'playing') return;
             
-            units.filter(u => u.team === turnOrder[currentTeamIdx]).forEach(u => u.hasActed = false);
+            units.filter(u => u.team === turnOrder[currentTeamIdx]).forEach(u => { u.hasActed = false; u.hasMovedThisTurn = false; });
             
             do {
                 currentTeamIdx = (currentTeamIdx + 1) % turnOrder.length;
             } while(units.filter(u => u.team === turnOrder[currentTeamIdx]).length === 0 && !checkVictory());
 
-            actionsLeft = 3;
+            actionsLeft = maxAP;
             
             let t = turnOrder[currentTeamIdx];
             updateUI(); renderBoard();
@@ -947,7 +1008,7 @@
                     if(wound) {
                         wound.u.currentHp = Math.min(wound.u.hp, wound.u.currentHp+30);
                         h.hasActed = true; actionsLeft--; acted = true;
-                        logAction(`💖 L'IA cura ${wound.u.name}.`); break;
+                        logAction(`💖 L'IA cura ${wound.u.role}.`); break;
                     }
                 }
 
@@ -969,14 +1030,14 @@
                     let enemies = units.filter(e => e.team !== t && e.team !== 'neutral');
                     if (u.currentHp < u.hp * 0.4 && cfg.diff === 'Difficile' && Math.random() > 0.3) {
                         u.isCamped = true; u.currentHp = Math.min(u.hp, u.currentHp + 20);
-                        u.hasActed = true; actionsLeft--; logAction(`⛺ IA accampa ${u.name}.`); renderBoard();
+                        u.hasActed = true; actionsLeft--; logAction(`⛺ IA accampa ${u.role}.`); renderBoard();
                     } else if(moves.length > 0 && enemies.length > 0) {
                         let target = enemies[Math.floor(Math.random()*enemies.length)];
                         moves.sort((a,b)=> (Math.abs(a.x-target.x)+Math.abs(a.y-target.y)) - (Math.abs(b.x-target.x)+Math.abs(b.y-target.y)));
                         
                         u.isCamped = false; u.x = moves[0].x; u.y = moves[0].y;
                         u.hasActed = true; actionsLeft--;
-                        logAction(`🤖 ${u.name} si sposta.`); renderBoard();
+                        logAction(`🤖 IA sposta ${u.role}.`); renderBoard();
                     } else {
                         u.hasActed = true; 
                     }
@@ -1019,7 +1080,7 @@
                     pDeployQueue.forEach((u, i) => {
                         let sel = i === selectedDeployUnitIndex;
                         html += `<div onclick="selectDeployUnit(${i})" style="border:2px solid ${sel?'var(--accent-gold)':'#ccc'}; padding:5px; border-radius:5px; cursor:pointer; width:48%; text-align:center; background:${sel?'#fff':'#f9f9f9'}">
-                            ${u.icon} <span style="font-size:0.8rem">${u.name}</span></div>`;
+                            ${u.icon} <span style="font-size:0.8rem; font-weight:bold;">${u.role}</span></div>`;
                     });
                     det.innerHTML = html + '</div>';
                 } else {
@@ -1033,7 +1094,7 @@
                 b.style.color = "white"; b.style.borderColor = "black";
                 
                 btnPass.style.display = t === 'player' ? 'block' : 'none';
-                msg.innerText = t === 'player' ? "Usa 3 PA (Punti Azione)" : "L'IA sta pensando...";
+                msg.innerText = t === 'player' ? `Usa ${maxAP} PA (1 PA = Spostamento + Azione)` : "L'IA sta pensando...";
                 if(!activeUnit && t === 'player') det.innerHTML = "Clicca per Info.";
             }
         }
@@ -1045,7 +1106,7 @@
                 if (teamUnits.length === 0) return;
                 html += `<div class="team-icons-row"><strong style="width:60px;">${t.toUpperCase()}</strong> `;
                 teamUnits.forEach(u => {
-                    html += `<span title="${u.name}">${u.icon}</span>`;
+                    html += `<span title="${u.role} (${u.name})">${u.icon}</span>`;
                 });
                 html += `</div>`;
             });
@@ -1055,7 +1116,7 @@
         function updateAPDisplay() {
             if(gameState === 'deploy') return;
             const c = document.getElementById('ap-container'); c.innerHTML = '';
-            for(let i=0; i<3; i++) c.innerHTML += `<div class="ap-dot ${i < actionsLeft ? 'active' : ''}"></div>`;
+            for(let i=0; i<maxAP; i++) c.innerHTML += `<div class="ap-dot ${i < actionsLeft ? 'active' : ''}"></div>`;
         }
 
         function updateInfo(u) {
@@ -1065,11 +1126,11 @@
             let effAtk = Math.max(5, Math.round(u.atk * (1 - u.auraAtkDrop/100)));
             
             det.innerHTML = `
-                <div style="font-size:1.1rem; margin-bottom:5px;">${u.icon} <strong>${u.name}</strong> <small>(${u.team})</small></div>
+                <div style="font-size:1.1rem; margin-bottom:5px;">${u.icon} <strong style="color:var(--accent-gold-hover)">${u.role}</strong> (${u.name}) <small>[${u.team}]</small></div>
                 ❤️ HP: ${u.currentHp}/${u.hp} | ⚔️ Atk: ${effAtk} | 🛡️ Def: ${effDef}%<br>
                 ⚡ Mov: ${u.mov} | 🎯 Rng: ${u.rng} | 👁️ Vis: ${u.vis}<br>
-                <em>Abilità: ${u.perk || 'Nessuna'}</em>
-                ${u.passenger ? `<br>📦 <strong>A bordo:</strong> ${u.passenger.name}` : ''}
+                <em>${u.desc}</em>
+                ${u.passenger ? `<br>📦 <strong>A bordo:</strong> ${u.passenger.role}` : ''}
             `;
         }
 
