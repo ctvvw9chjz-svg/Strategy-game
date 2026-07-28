@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strategia Elegante</title>
+    <style>
+        /* === STILE ELEGANTE E CHIARO === */
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400&display=swap');
+
+        :root {
+            --bg-color: #Fdfbf7; /* Beige molto chiaro */
+            --text-color: #3e2a14; /* Marrone scuro elegante */
+            --accent-color: #8c6b4a;
+            --board-border: #5c4326;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Lato', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+            text-align: center;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        button {
+            background-color: transparent;
+            border: 1px solid var(--accent-color);
+            color: var(--text-color);
+            padding: 10px 20px;
+            margin: 10px;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        /* === SCHERMATA DRAFTING === */
+        .draft-container {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .unit-card {
+            border: 1px solid var(--accent-color);
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            width: 120px;
+            background-color: white;
+            transition: transform 0.2s;
+        }
+        .unit-card:hover { transform: scale(1.05); }
+        .unit-color-box { width: 30px; height: 30px; margin: 0 auto 10px auto; border-radius: 50%; }
+
+        /* === SCHERMATA GIOCO (LA MAPPA) === */
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(10, 40px);
+            grid-template-rows: repeat(10, 40px);
+            gap: 2px;
+            border: 4px solid var(--board-border);
+            padding: 4px;
+            background-color: var(--board-border);
+            margin: 20px 0;
+        }
+
+        .cell {
+            width: 40px;
+            height: 40px;
+            background-color: #e8d8c3; /* Pianura base */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .cell:hover::after {
+            content: '';
+            position: absolute;
+            top:0; left:0; right:0; bottom:0;
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .cell.selected { box-shadow: inset 0 0 0 3px #d4af37; }
+        .cell.valid-move { box-shadow: inset 0 0 0 2px #4caf50; }
+
+        /* Terreni */
+        .terrain-pianura { background-color: #e6dfd3; }
+        .terrain-lago { background-color: #a4c8e1; }
+        .terrain-bosco { background-color: #a9c5a0; }
+        .terrain-deserto { background-color: #e8cba9; }
+        .terrain-montagna { background-color: #a5a29f; }
+
+        /* Pedine */
+        .piece {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            pointer-events: none; /* Lascia il click alla cella */
+        }
+        .team-player { border-color: gold; }
+        .team-enemy { border-color: black; }
+
+        #info-panel { text-align: center; margin-bottom: 10px; font-style: italic; height: 30px;}
+    </style>
+</head>
+<body>
+
+    <!-- SCHERMATA 1: DIFFICOLTÀ -->
+    <div id="screen-menu" class="screen active">
+        <h1>Strategia Elegante</h1>
+        <p>Seleziona la difficoltà per iniziare</p>
+        <div>
+            <button onclick="setDifficulty('Facile')">Facile</button>
+            <button onclick="setDifficulty('Normale')">Normale</button>
+            <button onclick="setDifficulty('Difficile')">Difficile</button>
+        </div>
+    </div>
+
+    <!-- SCHERMATA 2: SCELTA SQUADRA -->
+    <div id="screen-draft" class="screen">
+        <h2>Componi il tuo Esercito</h2>
+        <p>Scegli 5 pezzi (Attuali: <span id="draft-count">0</span>/5)</p>
+        <div class="draft-container" id="draft-container">
+            <!-- Generato via JS -->
+        </div>
+        <button onclick="startGame()" id="btn-start" style="display:none; margin-top:20px;">Inizia Partita</button>
+    </div>
+
+    <!-- SCHERMATA 3: GIOCO -->
+    <div id="screen-game" class="screen">
+        <h2 id="turn-indicator">Turno: Giocatore</h2>
+        <div id="info-panel">Seleziona una pedina per muoverla.</div>
+        <div id="game-board"></div>
+    </div>
+
+    <script>
+        // === CONFIGURAZIONE DATI ===
+        
+        const UNIT_TYPES = {
+            'Cecchino': { id: 'Cecchino', desc: 'Lunga Distanza. Danno alto, fragile.', mov: 3, range: 6, hp: 50, color: '#8b0000' },
+            'Ranger': { id: 'Ranger', desc: 'Media Distanza. Equilibrato.', mov: 4, range: 4, hp: 70, color: '#cc5500' },
+            'Esploratore': { id: 'Esploratore', desc: 'Alta Mobilità. Danno basso.', mov: 6, range: 1, hp: 60, color: '#228b22' },
+            'Guerriero': { id: 'Guerriero', desc: 'Vicino Classico. Ottimi HP e danno.', mov: 3, range: 1, hp: 100, color: '#4169e1' },
+            'Colosso': { id: 'Colosso', desc: 'Vicino Pesante. Lento ma letale.', mov: 2, range: 1, hp: 150, color: '#4b0082' }
+        };
+
+        const TERRAINS = [
+            { id: 'pianura', walk: true, weight: 50 },
+            { id: 'lago', walk: false, weight: 10 },
+            { id: 'bosco', walk: true, weight: 20 }, // Rallenta (da implementare)
+            { id: 'deserto', walk: true, weight: 10 }, // Danno a fine turno (da implementare)
+            { id: 'montagna', walk: false, weight: 10 }
+        ];
+
+        // STATO DI GIOCO
+        let difficulty = '';
+        let playerRoster = [];
+        let enemyRoster = [];
+        let boardState = []; // 10x10 array
+        let selectedUnit = null;
+        let currentTurn = 'player'; // 'player' o 'enemy'
+
+        // === NAVIGAZIONE SCHERMATE ===
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        // === FASE 1: DIFFICOLTÀ ===
+        function setDifficulty(diff) {
+            difficulty = diff;
+            initDrafting();
+            showScreen('screen-draft');
+        }
+
+        // === FASE 2: DRAFTING ===
+        function initDrafting() {
+            const container = document.getElementById('draft-container');
+            container.innerHTML = '';
+            playerRoster = [];
+            
+            for (let key in UNIT_TYPES) {
+                const u = UNIT_TYPES[key];
+                const card = document.createElement('div');
+                card.className = 'unit-card';
+                card.innerHTML = `
+                    <div class="unit-color-box" style="background-color: ${u.color}"></div>
+                    <strong>${u.id}</strong><br>
+                    <small>Mov: ${u.mov} | Rng: ${u.range}</small>
+                `;
+                card.onclick = () => draftUnit(key);
+                container.appendChild(card);
+            }
+        }
+
+        function draftUnit(unitKey) {
+            if (playerRoster.length < 5) {
+                playerRoster.push({...UNIT_TYPES[unitKey], team: 'player', id_instance: 'p_'+playerRoster.length});
+                document.getElementById('draft-count').innerText = playerRoster.length;
+                if (playerRoster.length === 5) {
+                    document.getElementById('btn-start').style.display = 'block';
+                }
+            }
+        }
+
+        // === FASE 3: GIOCO ===
+        function startGame() {
+            generateEnemyRoster();
+            generateBoard();
+            placeUnits();
+            renderBoard();
+            showScreen('screen-game');
+            updateInfo("Partita iniziata. Il tuo turno!");
+        }
+
+        function generateEnemyRoster() {
+            const keys = Object.keys(UNIT_TYPES);
+            for(let i=0; i<5; i++) {
+                // Sceglie pezzi casuali per il computer
+                const randKey = keys[Math.floor(Math.random() * keys.length)];
+                enemyRoster.push({...UNIT_TYPES[randKey], team: 'enemy', id_instance: 'e_'+i});
+            }
+        }
+
+        function generateBoard() {
+            // Generazione procedurale basata su pesi
+            boardState = [];
+            for (let y = 0; y < 10; y++) {
+                let row = [];
+                for (let x = 0; x < 10; x++) {
+                    let rand = Math.random() * 100;
+                    let currentWeight = 0;
+                    let selectedTerrain = 'pianura';
+                    for (let t of TERRAINS) {
+                        currentWeight += t.weight;
+                        if (rand <= currentWeight) {
+                            selectedTerrain = t.id;
+                            break;
+                        }
+                    }
+                    row.push({ x, y, terrain: selectedTerrain, unit: null });
+                }
+                boardState.push(row);
+            }
+            // Assicurati che le aree di spawn siano pianura per evitare blocchi
+            for(let i=0; i<10; i++) {
+                boardState[9][i].terrain = 'pianura'; // Player spawn
+                boardState[0][i].terrain = 'pianura'; // Enemy spawn
+            }
+        }
+
+        function placeUnits() {
+            // Piazza giocatore in basso
+            for(let i=0; i<5; i++) {
+                boardState[9][2+i].unit = playerRoster[i];
+            }
+            // Piazza nemico in alto
+            for(let i=0; i<5; i++) {
+                boardState[0][2+i].unit = enemyRoster[i];
+            }
+        }
+
+        function renderBoard() {
+            const boardEl = document.getElementById('game-board');
+            boardEl.innerHTML = '';
+            
+            for (let y = 0; y < 10; y++) {
+                for (let x = 0; x < 10; x++) {
+                    const cellData = boardState[y][x];
+                    const cellEl = document.createElement('div');
+                    cellEl.className = `cell terrain-${cellData.terrain}`;
+                    
+                    if (selectedUnit && selectedUnit.x === x && selectedUnit.y === y) {
+                        cellEl.classList.add('selected');
+                    }
+
+                    // Evidenzia mosse valide
+                    if (selectedUnit && isValidMove(selectedUnit.x, selectedUnit.y, x, y, selectedUnit.unit.mov)) {
+                        cellEl.classList.add('valid-move');
+                    }
+
+                    if (cellData.unit) {
+                        const piece = document.createElement('div');
+                        piece.className = `piece team-${cellData.unit.team}`;
+                        piece.style.backgroundColor = cellData.unit.color;
+                        cellEl.appendChild(piece);
+                    }
+
+                    cellEl.onclick = () => handleCellClick(x, y);
+                    boardEl.appendChild(cellEl);
+                }
+            }
+        }
+
+        function handleCellClick(x, y) {
+            if (currentTurn !== 'player') return;
+
+            const clickedCell = boardState[y][x];
+
+            // 1. Seleziona una propria unità
+            if (clickedCell.unit && clickedCell.unit.team === 'player') {
+                selectedUnit = { x, y, unit: clickedCell.unit };
+                updateInfo(`Selezionato: ${clickedCell.unit.id}. Scegli dove muovere.`);
+                renderBoard();
+                return;
+            }
+
+            // 2. Muovi l'unità selezionata
+            if (selectedUnit && !clickedCell.unit) {
+                if (isValidMove(selectedUnit.x, selectedUnit.y, x, y, selectedUnit.unit.mov)) {
+                    // Controllo ostacoli base (montagna/lago)
+                    const terrainRule = TERRAINS.find(t => t.id === clickedCell.terrain);
+                    if(!terrainRule.walk) {
+                        updateInfo("Terreno invalicabile!");
+                        return;
+                    }
+
+                    // Esegui mossa
+                    boardState[y][x].unit = selectedUnit.unit;
+                    boardState[selectedUnit.y][selectedUnit.x].unit = null;
+                    selectedUnit = null;
+                    renderBoard();
+                    
+                    // Fine turno giocatore, passa al computer
+                    currentTurn = 'enemy';
+                    document.getElementById('turn-indicator').innerText = "Turno: Computer (" + difficulty + ")";
+                    updateInfo("Il computer sta pensando...");
+                    setTimeout(aiTurn, 1000); // Ritardo per realismo
+                } else {
+                    updateInfo("Fuori dal raggio di movimento.");
+                }
+            }
+        }
+
+        // Calcolo distanza (Manhattan)
+        function getDistance(x1, y1, x2, y2) {
+            return Math.abs(x1 - x2) + Math.abs(y1 - y2);
+        }
+
+        function isValidMove(startX, startY, endX, endY, maxMov) {
+            const dist = getDistance(startX, startY, endX, endY);
+            return dist > 0 && dist <= maxMov;
+        }
+
+        // === INTELLIGENZA ARTIFICIALE BASE ===
+        function aiTurn() {
+            // Trova tutte le unità nemiche
+            let aiUnits = [];
+            for(let y=0; y<10; y++) {
+                for(let x=0; x<10; x++) {
+                    if(boardState[y][x].unit && boardState[y][x].unit.team === 'enemy') {
+                        aiUnits.push({x, y, unit: boardState[y][x].unit});
+                    }
+                }
+            }
+
+            if(aiUnits.length > 0) {
+                // IA Molto Base: Prende un'unità a caso e la muove in giù o verso il giocatore
+                // QUI PUOI IMPLEMENTARE LE LOGICHE PER FACILE/NORMALE/DIFFICILE
+                const randomUnit = aiUnits[Math.floor(Math.random() * aiUnits.length)];
+                
+                // Cerca una casella valida vicina
+                let moved = false;
+                for(let r=randomUnit.unit.mov; r>0; r--) {
+                    if(moved) break;
+                    let targetY = randomUnit.y + r; // Prova ad andare verso il basso (verso il giocatore)
+                    let targetX = randomUnit.x;
+                    
+                    if(targetY < 10 && !boardState[targetY][targetX].unit) {
+                        const tRule = TERRAINS.find(t => t.id === boardState[targetY][targetX].terrain);
+                        if(tRule.walk) {
+                            boardState[targetY][targetX].unit = randomUnit.unit;
+                            boardState[randomUnit.y][randomUnit.x].unit = null;
+                            moved = true;
+                        }
+                    }
+                }
+            }
+
+            currentTurn = 'player';
+            document.getElementById('turn-indicator').innerText = "Turno: Giocatore";
+            updateInfo("Tocca a te. Fai la tua mossa.");
+            renderBoard();
+        }
+
+        function updateInfo(msg) {
+            document.getElementById('info-panel').innerText = msg;
+        }
+    </script>
+</body>
+</html>
