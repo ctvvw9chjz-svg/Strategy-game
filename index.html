@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Strategia Elegante - Tattica Avanzata</title>
+    <title>Strategia Elegante - Regole Avanzate</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
@@ -15,7 +15,7 @@
             --accent-gold: #c59b27; --accent-gold-hover: #a37f1e;
             --player-color: #2b5b84; --enemy-color: #9e2a2b;
             --move-highlight: rgba(76, 175, 80, 0.5); --attack-highlight: rgba(229, 57, 53, 0.5);
-            --spawn-highlight: rgba(255, 215, 0, 0.4);
+            --spawn-player: rgba(255, 215, 0, 0.3); --spawn-enemy: rgba(229, 57, 53, 0.2);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -45,7 +45,6 @@
         .game-layout { display: flex; gap: 20px; width: 100%; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
         #board-container { background: #3e2e1e; padding: 6px; border-radius: 8px; box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
         
-        /* Griglia 16x16 */
         #game-board { display: grid; grid-template-columns: repeat(16, 36px); grid-template-rows: repeat(16, 36px); gap: 2px; }
         
         .cell { width: 36px; height: 36px; border-radius: 3px; display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; font-size: 1rem; user-select: none; }
@@ -58,20 +57,25 @@
         .cell.montagna { background-color: #b0a8a0; }
         .cell.citta { background-color: #d1c4b8; border: 1px dashed #9a8c80; }
         .cell.collina { background-color: #c5d6a1; box-shadow: inset 0 0 10px rgba(0,0,0,0.1); }
-        .cell.vuoto { background-color: transparent; cursor: default; } /* I buchi */
+        .cell.vuoto { background-color: transparent; cursor: default; }
 
         /* HIGHLIGHTS */
         .cell.selected { box-shadow: inset 0 0 0 3px var(--accent-gold); z-index: 2; }
         .cell.valid-move::after { content: ''; position: absolute; width: 14px; height: 14px; background: var(--move-highlight); border: 2px solid #2e7d32; border-radius: 50%; }
         .cell.valid-attack { background-color: var(--attack-highlight) !important; box-shadow: inset 0 0 0 2px #d32f2f; }
-        .cell.spawn-zone { box-shadow: inset 0 0 0 3px var(--spawn-highlight); background-color: rgba(255, 215, 0, 0.1); }
+        .cell.valid-camp::after { content: '⛺'; position: absolute; font-size: 1.2rem; opacity: 0.8; }
+        .cell.spawn-p { box-shadow: inset 0 0 0 3px gold; background-color: var(--spawn-player); }
+        .cell.spawn-e { box-shadow: inset 0 0 0 3px red; background-color: var(--spawn-enemy); }
 
         /* PEDINE */
         .piece { width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.1rem; position: relative; z-index: 3; box-shadow: 0 3px 6px rgba(0,0,0,0.3); transition: transform 0.2s; }
         .piece.team-player { background: linear-gradient(135deg, #3a7bd5, #3a6073); border: 2px solid #ffd700; color: #fff; }
         .piece.team-enemy { background: linear-gradient(135deg, #e53935, #8e0e00); border: 2px solid #ffcdd2; color: #fff; }
         
-        .status-icon { position: absolute; top: -5px; right: -5px; font-size: 0.7rem; background: white; border-radius: 50%; padding: 1px; }
+        .piece.acted { filter: grayscale(100%); opacity: 0.6; box-shadow: none; border-color: #888; } /* Esaurita */
+
+        .status-icon { position: absolute; top: -5px; right: -5px; font-size: 0.7rem; background: white; border-radius: 50%; padding: 1px; line-height: 1;}
+        .status-camp { position: absolute; top: -5px; left: -5px; font-size: 0.7rem; background: white; border-radius: 50%; padding: 1px; }
 
         .hp-bar-container { position: absolute; bottom: 2px; width: 24px; height: 4px; background: rgba(0,0,0,0.6); border-radius: 2px; overflow: hidden; }
         .hp-bar-fill { height: 100%; background: #00e676; width: 100%; transition: width 0.3s; }
@@ -88,7 +92,7 @@
 
         .terrain-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 0.75rem; }
         .legend-item { display: flex; align-items: center; gap: 5px; }
-        .log-box { height: 100px; overflow-y: auto; font-size: 0.8rem; background: #faf8f5; border: 1px solid #e2d9cc; padding: 5px; font-family: monospace; display: flex; flex-direction: column-reverse; }
+        .log-box { height: 130px; overflow-y: auto; font-size: 0.8rem; background: #faf8f5; border: 1px solid #e2d9cc; padding: 5px; font-family: monospace; display: flex; flex-direction: column-reverse; }
 
         .control-btns { display: flex; flex-direction: column; gap: 8px; }
         .control-btns button { font-size: 0.9rem; padding: 8px; }
@@ -122,7 +126,7 @@
         <div class="btn-group">
             <button onclick="document.getElementById('screen-config').classList.add('active'); document.getElementById('screen-draft').classList.remove('active');">Indietro</button>
             <button onclick="resetDraft()">Svuota</button>
-            <button class="primary-action" id="btn-start-game" style="display: none;" onclick="startDeployment()">Schiera Truppe ➔</button>
+            <button class="primary-action" id="btn-start-game" style="display: none;" onclick="startDeployment()">Alla Battaglia! ➔</button>
         </div>
     </div>
 
@@ -135,27 +139,25 @@
 
             <div class="sidebar">
                 <div class="info-card">
-                    <div id="turn-badge" class="turn-badge" style="background:#e6f0fa; color:#2b5b84;">FASE DI SCHIERAMENTO</div>
-                    <div class="action-points" id="ap-container">
-                        <!-- Generati via JS -->
-                    </div>
-                    <div id="status-msg" style="font-weight: bold; text-align:center; font-size:0.85rem;">Piazza le tue 5 pedine nelle zone gialle.</div>
+                    <div id="turn-badge" class="turn-badge" style="background:#e6f0fa; color:#2b5b84;">...</div>
+                    <div class="action-points" id="ap-container"></div>
+                    <div id="status-msg" style="font-weight: bold; text-align:center; font-size:0.85rem; margin-bottom:8px;">...</div>
+                    
+                    <button id="btn-pass" style="width:100%; padding:6px; font-size:0.85rem; display:none;" onclick="forcePassTurn()">Passa il Turno</button>
+                    
                     <hr style="margin:8px 0; border:0; border-top:1px solid #ddd;">
-                    <div id="unit-detail-box" style="font-size: 0.8rem; color: var(--text-muted); min-height: 40px;">
+                    <div id="unit-detail-box" style="font-size: 0.8rem; color: var(--text-muted); min-height: 45px;">
                         Clicca su un'unità per i dettagli.
                     </div>
                 </div>
 
                 <div class="info-card">
-                    <h4 style="margin-bottom: 5px; font-size:0.9rem;">Guida Terreni</h4>
-                    <div class="terrain-legend">
-                        <div class="legend-item">🌿 Pianura: Base</div>
-                        <div class="legend-item">🌲 Bosco: Difesa+, Mov Cav-</div>
-                        <div class="legend-item">🏜️ Deserto: Mov- (escl. agili)</div>
-                        <div class="legend-item">⛰️ Monte: Impassabile</div>
-                        <div class="legend-item">🏰 Città: Difesa++, Mov-</div>
-                        <div class="legend-item">🌄 Collina: Gittata +1</div>
-                    </div>
+                    <h4 style="margin-bottom: 5px; font-size:0.9rem;">Guida Rapida</h4>
+                    <ul style="font-size:0.75rem; padding-left:15px; margin-bottom:10px;">
+                        <li><strong>Esaurimento:</strong> Ogni truppa agisce 1 volta per turno.</li>
+                        <li><strong>Accampati:</strong> Clicca sulla TUA casella per curarti (+20 HP) e fortificarti (+30% Difesa).</li>
+                        <li><strong>Contrattacco:</strong> Difensori a tiro rispondono al fuoco (i Cecchini fanno poco danno da vicino, i Guerrieri molto).</li>
+                    </ul>
                 </div>
 
                 <div class="info-card" style="padding: 5px;">
@@ -164,64 +166,64 @@
 
                 <div class="control-btns">
                     <button onclick="restartSameRoster()"><i class="fa-solid fa-rotate-left"></i> Riavvia (Stesse Truppe)</button>
-                    <button onclick="location.reload()"><i class="fa-solid fa-house"></i> Torna al Menu Principale</button>
+                    <button onclick="location.reload()"><i class="fa-solid fa-house"></i> Cambia Epoca</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // === DATABASE (3 Epoche) ===
+        // === DATABASE TRUPPE (Con Modificatore Contrattacco) ===
         const ERAS = {
             fantasy: {
                 units: {
-                    cecchino: { id: "cecchino", name: "Arciere", icon: '<i class="fa-solid fa-feather-pointed"></i>', mov: 3, range: 5, hp: 50, atk: 40, desc: "Lunga gittata.", ignoresDesert: false, isMounted: false },
-                    ranger: { id: "ranger", name: "Mago", icon: '<i class="fa-solid fa-wand-magic-sparkles"></i>', mov: 3, range: 3, hp: 65, atk: 35, desc: "Media distanza.", ignoresDesert: false, isMounted: false },
-                    esploratore: { id: "esploratore", name: "Folletto", icon: '<i class="fa-solid fa-leaf"></i>', mov: 5, range: 1, hp: 55, atk: 25, desc: "Ignora deserto.", ignoresDesert: true, isMounted: false },
-                    guerriero: { id: "guerriero", name: "Cavaliere", icon: '<i class="fa-solid fa-chess-knight"></i>', mov: 4, range: 1, hp: 100, atk: 38, desc: "Rallentato in bosco.", ignoresDesert: false, isMounted: true },
-                    colosso: { id: "colosso", name: "Golem", icon: '<i class="fa-solid fa-cube"></i>', mov: 2, range: 1, hp: 140, atk: 50, desc: "Lento, letale.", ignoresDesert: false, isMounted: false }
+                    cecchino: { id: "cecchino", name: "Arciere", icon: '<i class="fa-solid fa-feather-pointed"></i>', mov: 3, range: 5, hp: 50, atk: 45, counterMod: 0.3, desc: "Forte a distanza, scarso in contrattacco.", ignoresDesert: false, isMounted: false },
+                    ranger: { id: "ranger", name: "Mago", icon: '<i class="fa-solid fa-wand-magic-sparkles"></i>', mov: 3, range: 3, hp: 65, atk: 35, counterMod: 0.5, desc: "Magia a media distanza.", ignoresDesert: false, isMounted: false },
+                    esploratore: { id: "esploratore", name: "Folletto", icon: '<i class="fa-solid fa-leaf"></i>', mov: 5, range: 1, hp: 60, atk: 25, counterMod: 0.7, desc: "Veloce. Ignora deserto.", ignoresDesert: true, isMounted: false },
+                    guerriero: { id: "guerriero", name: "Cavaliere", icon: '<i class="fa-solid fa-chess-knight"></i>', mov: 4, range: 1, hp: 100, atk: 38, counterMod: 0.9, desc: "Solido contrattacco corpo a corpo.", ignoresDesert: false, isMounted: true },
+                    colosso: { id: "colosso", name: "Golem", icon: '<i class="fa-solid fa-cube"></i>', mov: 2, range: 1, hp: 140, atk: 50, counterMod: 1.0, desc: "Lento, devastante in risposta.", ignoresDesert: false, isMounted: false }
                 }
             },
             west: {
                 units: {
-                    cecchino: { id: "cecchino", name: "Tiratore", icon: '<i class="fa-solid fa-crosshairs"></i>', mov: 3, range: 5, hp: 50, atk: 42, desc: "Lunga gittata.", ignoresDesert: false, isMounted: false },
-                    ranger: { id: "ranger", name: "Pistolero", icon: '<i class="fa-solid fa-gun"></i>', mov: 4, range: 3, hp: 70, atk: 32, desc: "Revolver veloce.", ignoresDesert: false, isMounted: false },
-                    esploratore: { id: "esploratore", name: "Scout", icon: '<i class="fa-solid fa-campground"></i>', mov: 5, range: 1, hp: 60, atk: 28, desc: "Ignora deserto.", ignoresDesert: true, isMounted: false },
-                    guerriero: { id: "guerriero", name: "Cavalleria", icon: '<i class="fa-solid fa-chess-knight"></i>', mov: 4, range: 1, hp: 95, atk: 35, desc: "Rallentato in bosco.", ignoresDesert: false, isMounted: true },
-                    colosso: { id: "colosso", name: "Sceriffo", icon: '<i class="fa-solid fa-star"></i>', mov: 2, range: 1, hp: 130, atk: 45, desc: "Fucile a pompa.", ignoresDesert: false, isMounted: false }
+                    cecchino: { id: "cecchino", name: "Tiratore", icon: '<i class="fa-solid fa-crosshairs"></i>', mov: 3, range: 5, hp: 50, atk: 48, counterMod: 0.3, desc: "Fucile letale, debole da vicino.", ignoresDesert: false, isMounted: false },
+                    ranger: { id: "ranger", name: "Pistolero", icon: '<i class="fa-solid fa-gun"></i>', mov: 4, range: 3, hp: 70, atk: 32, counterMod: 0.6, desc: "Revolver veloce.", ignoresDesert: false, isMounted: false },
+                    esploratore: { id: "esploratore", name: "Scout", icon: '<i class="fa-solid fa-campground"></i>', mov: 5, range: 1, hp: 65, atk: 28, counterMod: 0.7, desc: "Esperto terreni. Ignora deserto.", ignoresDesert: true, isMounted: false },
+                    guerriero: { id: "guerriero", name: "Cavalleria", icon: '<i class="fa-solid fa-chess-knight"></i>', mov: 4, range: 1, hp: 95, atk: 35, counterMod: 0.9, desc: "Carica pesante.", ignoresDesert: false, isMounted: true },
+                    colosso: { id: "colosso", name: "Sceriffo", icon: '<i class="fa-solid fa-star"></i>', mov: 2, range: 1, hp: 130, atk: 45, counterMod: 1.0, desc: "Fucile a pompa ravvicinato.", ignoresDesert: false, isMounted: false }
                 }
             },
             future: {
                 units: {
-                    cecchino: { id: "cecchino", name: "Railgun", icon: '<i class="fa-solid fa-satellite-dish"></i>', mov: 3, range: 5, hp: 55, atk: 45, desc: "Impulsi a distanza.", ignoresDesert: false, isMounted: false },
-                    ranger: { id: "ranger", name: "Plasma", icon: '<i class="fa-solid fa-bolt"></i>', mov: 3, range: 3, hp: 75, atk: 35, desc: "Fucile plasma.", ignoresDesert: false, isMounted: false },
-                    esploratore: { id: "esploratore", name: "Drone", icon: '<i class="fa-solid fa-rocket"></i>', mov: 6, range: 1, hp: 50, atk: 25, desc: "Volo anti-attrito.", ignoresDesert: true, isMounted: false },
-                    guerriero: { id: "guerriero", name: "Cyborg", icon: '<i class="fa-solid fa-robot"></i>', mov: 4, range: 1, hp: 90, atk: 40, desc: "Equilibrato.", ignoresDesert: false, isMounted: false },
-                    colosso: { id: "colosso", name: "Mech", icon: '<i class="fa-solid fa-microchip"></i>', mov: 2, range: 1, hp: 160, atk: 55, desc: "Corazzata pesante.", ignoresDesert: false, isMounted: false }
+                    cecchino: { id: "cecchino", name: "Railgun", icon: '<i class="fa-solid fa-satellite-dish"></i>', mov: 3, range: 5, hp: 55, atk: 50, counterMod: 0.3, desc: "Artiglieria lunga.", ignoresDesert: false, isMounted: false },
+                    ranger: { id: "ranger", name: "Plasma", icon: '<i class="fa-solid fa-bolt"></i>', mov: 3, range: 3, hp: 75, atk: 35, counterMod: 0.5, desc: "Fuoco medio raggio.", ignoresDesert: false, isMounted: false },
+                    esploratore: { id: "esploratore", name: "Drone", icon: '<i class="fa-solid fa-rocket"></i>', mov: 6, range: 1, hp: 55, atk: 25, counterMod: 0.7, desc: "Volante. Ignora deserto.", ignoresDesert: true, isMounted: false },
+                    guerriero: { id: "guerriero", name: "Cyborg", icon: '<i class="fa-solid fa-robot"></i>', mov: 4, range: 1, hp: 90, atk: 40, counterMod: 0.9, desc: "Resistente.", ignoresDesert: false, isMounted: false },
+                    colosso: { id: "colosso", name: "Mech", icon: '<i class="fa-solid fa-microchip"></i>', mov: 2, range: 1, hp: 160, atk: 55, counterMod: 1.0, desc: "Mecha corazzato.", ignoresDesert: false, isMounted: false }
                 }
             }
         };
 
         const TERRAINS = {
-            pianura: { id: 'pianura', icon: '🌿', walk: true, see: true },
-            bosco: { id: 'bosco', icon: '🌲', walk: true, see: true },
-            deserto: { id: 'deserto', icon: '🏜️', walk: true, see: true },
-            montagna: { id: 'montagna', icon: '⛰️', walk: false, see: true }, // Impassabile ma si scavalca con i colpi
-            citta: { id: 'citta', icon: '🏰', walk: true, see: true },
-            collina: { id: 'collina', icon: '🌄', walk: true, see: true },
-            vuoto: { id: 'vuoto', icon: '', walk: false, see: false } // Buchi mappa, bloccano raggio
+            pianura: { id: 'pianura', icon: '🌿', walk: true },
+            bosco: { id: 'bosco', icon: '🌲', walk: true },
+            deserto: { id: 'deserto', icon: '🏜️', walk: true },
+            montagna: { id: 'montagna', icon: '⛰️', walk: false },
+            citta: { id: 'citta', icon: '🏰', walk: true },
+            collina: { id: 'collina', icon: '🌄', walk: true },
+            vuoto: { id: 'vuoto', icon: '', walk: false }
         };
 
-        // STATO GLOBALE
         const GRID_SIZE = 16;
         let selectedEra = 'fantasy', selectedDifficulty = 'Normale';
         let playerRosterKeys = [], boardState = [], playerUnits = [], enemyUnits = [];
         
         let gameState = 'config'; // config, deploy, playing, gameover
         let currentTurn = 'player';
+        let deployTurn = 'player'; // Chi piazza la pedina
         let activeUnit = null;
-        let actionsLeft = 3; // 3 PA per turno
-        let unitsToDeploy = [];
+        let actionsLeft = 3;
+        let pDeployQueue = [], eDeployQueue = [];
 
         // === FASE 1 & 2: Menu e Draft ===
         function selectEra(era) { selectedEra = era; document.querySelectorAll('#era-group button').forEach(b => b.classList.toggle('selected', b.innerText.toLowerCase().includes(era))); }
@@ -247,7 +249,7 @@
             document.getElementById('btn-start-game').style.display = playerRosterKeys.length === 5 ? 'block' : 'none';
         }
 
-        // === FASE 3: Generazione Mappa e Biomi ===
+        // === FASE 3: Generazione Mappa e ZONE DI SPAWN SPARSE ===
         function startDeployment() {
             document.getElementById('screen-draft').classList.remove('active');
             document.getElementById('screen-game').classList.add('active');
@@ -257,85 +259,160 @@
         function restartSameRoster() { if(confirm("Riavviare la partita con la stessa squadra?")) initGame(); }
 
         function initGame() {
-            gameState = 'deploy'; currentTurn = 'player'; actionsLeft = 3; document.getElementById('action-log').innerHTML = '';
-            generateBiomes();
-            prepareDeployment();
+            gameState = 'deploy'; 
+            document.getElementById('action-log').innerHTML = '';
+            
+            // Inizializza truppe
+            playerUnits = []; enemyUnits = [];
+            pDeployQueue = playerRosterKeys.map((k, i) => ({ ...ERAS[selectedEra].units[k], id: 'p_'+i, team: 'player', currentHp: ERAS[selectedEra].units[k].hp, killBuff: false, hasActed: false, isCamped: false }));
+            
+            let enemyKeys = Object.keys(ERAS[selectedEra].units);
+            eDeployQueue = [];
+            for(let i=0; i<5; i++) {
+                let k = enemyKeys[Math.floor(Math.random() * enemyKeys.length)];
+                eDeployQueue.push({ ...ERAS[selectedEra].units[k], id: 'e_'+i, team: 'enemy', currentHp: ERAS[selectedEra].units[k].hp, killBuff: false, hasActed: false, isCamped: false });
+            }
+
+            generateMapAndSpawns();
+            
+            // Inizia lo schieramento alternato (testacroce per chi parte)
+            deployTurn = Math.random() < 0.5 ? 'player' : 'enemy';
+            logAction(`Mappa Generata! Il sorteggio dice che inizia: ${deployTurn === 'player' ? 'TU' : 'COMPUTER'}`);
+            
             updateUI();
             renderBoard();
+            
+            if(deployTurn === 'enemy') setTimeout(aiDeployUnit, 600);
         }
 
-        function generateBiomes() {
+        function generateMapAndSpawns() {
             boardState = [];
-            // 1. Inizializza tutto a vuoto o pianura
             for (let y = 0; y < GRID_SIZE; y++) {
                 let row = [];
                 for (let x = 0; x < GRID_SIZE; x++) {
-                    // Crea buchi sparsi ai lati
-                    let isVoid = (Math.random() < 0.15 && (x < 2 || x > GRID_SIZE-3 || y < 2 || y > GRID_SIZE-3));
-                    row.push({ x, y, terrain: isVoid ? 'vuoto' : 'pianura', unit: null, isSpawnPlayer: false, isSpawnEnemy: false });
+                    let isVoid = (Math.random() < 0.12 && (x < 2 || x > GRID_SIZE-3 || y < 2 || y > GRID_SIZE-3));
+                    row.push({ x, y, terrain: isVoid ? 'vuoto' : 'pianura', unit: null, spawnTeam: null });
                 }
                 boardState.push(row);
             }
 
-            // 2. Pianta semi di bioma
-            const biomes = ['bosco', 'bosco', 'deserto', 'citta', 'collina', 'collina', 'montagna'];
+            // Biomi
+            const biomes = ['bosco', 'bosco', 'deserto', 'citta', 'collina', 'montagna'];
             biomes.forEach(b => {
                 let cx = Math.floor(Math.random() * (GRID_SIZE-4)) + 2;
                 let cy = Math.floor(Math.random() * (GRID_SIZE-4)) + 2;
-                // Espandi seme
                 for(let dy=-2; dy<=2; dy++){
                     for(let dx=-2; dx<=2; dx++){
-                        if(cx+dx>=0 && cx+dx<GRID_SIZE && cy+dy>=0 && cy+dy<GRID_SIZE) {
-                            if(boardState[cy+dy][cx+dx].terrain === 'pianura' && Math.random() > 0.3) {
-                                boardState[cy+dy][cx+dx].terrain = b;
-                            }
+                        if(cx+dx>=0 && cx+dx<GRID_SIZE && cy+dy>=0 && cy+dy<GRID_SIZE && boardState[cy+dy][cx+dx].terrain === 'pianura' && Math.random() > 0.4) {
+                            boardState[cy+dy][cx+dx].terrain = b;
                         }
                     }
                 }
             });
 
-            // 3. Genera Zone Spawn (3 blocchi in basso per player, 3 in alto per nemico)
-            for(let i=3; i<GRID_SIZE-3; i++) {
-                if(boardState[GRID_SIZE-2][i].terrain !== 'vuoto') boardState[GRID_SIZE-2][i].isSpawnPlayer = true;
-                if(boardState[GRID_SIZE-1][i].terrain !== 'vuoto') boardState[GRID_SIZE-1][i].isSpawnPlayer = true;
+            // Generazione 3 Zone Sparse per ogni Team (Ognuna 5 caselle)
+            createSpawnZones('player', 3);
+            createSpawnZones('enemy', 3);
+        }
+
+        function createSpawnZones(team, count) {
+            let zonesCreated = 0;
+            let attempts = 0;
+            while(zonesCreated < count && attempts < 100) {
+                attempts++;
+                let cx = Math.floor(Math.random() * GRID_SIZE);
+                let cy = Math.floor(Math.random() * GRID_SIZE);
                 
-                if(boardState[0][i].terrain !== 'vuoto') boardState[0][i].isSpawnEnemy = true;
-                if(boardState[1][i].terrain !== 'vuoto') boardState[1][i].isSpawnEnemy = true;
+                // Evita di creare spawn sui buchi o sopra ad altri spawn
+                if(boardState[cy][cx].terrain === 'vuoto' || boardState[cy][cx].spawnTeam) continue;
+                
+                // BFS per trovare 5 caselle adiacenti valide
+                let queue = [{x: cx, y: cy}];
+                let currentZone = [];
+                
+                while(queue.length > 0 && currentZone.length < 5) {
+                    let curr = queue.shift();
+                    if(!currentZone.some(c => c.x === curr.x && c.y === curr.y)) {
+                        currentZone.push(curr);
+                        
+                        const dirs = [[0,-1],[0,1],[-1,0],[1,0]];
+                        for(let d of dirs) {
+                            let nx = curr.x + d[0], ny = curr.y + d[1];
+                            if(nx>=0 && nx<GRID_SIZE && ny>=0 && ny<GRID_SIZE) {
+                                if(boardState[ny][nx].terrain !== 'vuoto' && !boardState[ny][nx].spawnTeam) {
+                                    queue.push({x: nx, y: ny});
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                if(currentZone.length === 5) {
+                    currentZone.forEach(c => boardState[c.y][c.x].spawnTeam = team);
+                    zonesCreated++;
+                }
             }
         }
 
-        function prepareDeployment() {
-            playerUnits = []; enemyUnits = [];
-            unitsToDeploy = playerRosterKeys.map((k, i) => ({ ...ERAS[selectedEra].units[k], id: 'p_'+i, team: 'player', currentHp: ERAS[selectedEra].units[k].hp, killBuff: false }));
+        // === FASE SCHIERAMENTO (Alternato) ===
+        function aiDeployUnit() {
+            if(gameState !== 'deploy' || eDeployQueue.length === 0) return;
             
-            // Nemico piazza in automatico
-            let enemyKeys = Object.keys(ERAS[selectedEra].units);
-            for(let i=0; i<5; i++) {
-                let k = enemyKeys[Math.floor(Math.random() * enemyKeys.length)];
-                let eu = { ...ERAS[selectedEra].units[k], id: 'e_'+i, team: 'enemy', currentHp: ERAS[selectedEra].units[k].hp, killBuff: false };
-                enemyUnits.push(eu);
-                // Trova spot libero nemico
-                for(let y=0; y<2; y++) {
-                    for(let x=0; x<GRID_SIZE; x++) {
-                        if(boardState[y][x].isSpawnEnemy && !boardState[y][x].unit) {
-                            eu.x = x; eu.y = y; boardState[y][x].unit = eu;
-                            break;
-                        }
+            // Trova tutte le caselle spawn nemiche libere
+            let validSpots = [];
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    if (boardState[y][x].spawnTeam === 'enemy' && !boardState[y][x].unit) {
+                        validSpots.push({x, y});
                     }
-                    if(eu.x !== undefined) break;
                 }
             }
-            logAction("Fase di Schieramento: Clicca sulle caselle gialle per piazzare.");
+            
+            if(validSpots.length > 0) {
+                let spot = validSpots[Math.floor(Math.random() * validSpots.length)];
+                let u = eDeployQueue.shift();
+                u.x = spot.x; u.y = spot.y;
+                boardState[spot.y][spot.x].unit = u;
+                enemyUnits.push(u);
+                logAction(`Il Nemico ha schierato ${u.name}.`);
+            }
+            
+            checkEndDeployment('player');
+        }
+
+        function checkEndDeployment(nextTurn) {
+            deployTurn = nextTurn;
+            renderBoard();
+            
+            if(pDeployQueue.length === 0 && eDeployQueue.length === 0) {
+                gameState = 'playing';
+                // Casuale chi inizia la partita vera e propria
+                currentTurn = Math.random() < 0.5 ? 'player' : 'enemy';
+                actionsLeft = 3;
+                logAction(`💥 SCHIERAMENTO COMPLETATO! Inizia la battaglia il: ${currentTurn === 'player' ? 'GIOCATORE' : 'COMPUTER'}`);
+                
+                if(currentTurn === 'enemy') setTimeout(aiTurn, 1000);
+            } else if (deployTurn === 'enemy' && eDeployQueue.length > 0) {
+                updateUI();
+                setTimeout(aiDeployUnit, 600);
+            } else if (deployTurn === 'player' && pDeployQueue.length === 0 && eDeployQueue.length > 0) {
+                // Se io ho finito ma il bot no
+                checkEndDeployment('enemy');
+            } else {
+                updateUI();
+            }
         }
 
         // === RENDERING ===
         function renderBoard() {
             const boardEl = document.getElementById('game-board'); boardEl.innerHTML = '';
             let validMoves = [], validAttacks = [];
+            let canCamp = false;
 
-            if (gameState === 'playing' && activeUnit && currentTurn === 'player' && actionsLeft > 0) {
+            if (gameState === 'playing' && activeUnit && currentTurn === 'player' && !activeUnit.hasActed && actionsLeft > 0) {
                 validMoves = getValidMoves(activeUnit);
                 validAttacks = getValidAttackTargets(activeUnit);
+                canCamp = true; // Può cliccare su se stesso
             }
 
             for (let y = 0; y < GRID_SIZE; y++) {
@@ -349,23 +426,30 @@
                     }
 
                     // Highlight Spawn
-                    if(gameState === 'deploy' && cell.isSpawnPlayer && !cell.unit) div.classList.add('spawn-zone');
+                    if(gameState === 'deploy') {
+                        if(cell.spawnTeam === 'player' && !cell.unit) div.classList.add('spawn-p');
+                        if(cell.spawnTeam === 'enemy' && !cell.unit) div.classList.add('spawn-e');
+                    }
                     
                     // Highlight Actions
-                    if(activeUnit && activeUnit.x === x && activeUnit.y === y) div.classList.add('selected');
+                    if(activeUnit && activeUnit.x === x && activeUnit.y === y) {
+                        div.classList.add('selected');
+                        if(canCamp) div.classList.add('valid-camp');
+                    }
                     if(validMoves.some(m => m.x===x && m.y===y)) div.classList.add('valid-move');
                     if(validAttacks.some(a => a.x===x && a.y===y)) div.classList.add('valid-attack');
 
                     // Disegna Unità
                     if (cell.unit) {
                         let u = cell.unit;
-                        calcBuffs(u); // Aggiorna status dinamici
+                        calcBuffs(u);
                         
                         let piece = document.createElement('div');
-                        piece.className = `piece team-${u.team}`;
+                        piece.className = `piece team-${u.team} ${u.hasActed ? 'acted' : ''}`;
                         piece.innerHTML = u.icon;
                         
                         // Icone Status
+                        if(u.isCamped) piece.innerHTML += `<span class="status-camp" title="Accampato (+Difesa, Curato)">⛺</span>`;
                         if(u.killBuff) piece.innerHTML += `<span class="status-icon" style="color:orange" title="Furia (+Danno)">🔥</span>`;
                         else if(u.surrounded) piece.innerHTML += `<span class="status-icon" style="color:red" title="Accerchiato (-Danno)">⚠️</span>`;
 
@@ -385,7 +469,6 @@
 
         // === REGOLE E CALCOLI ===
         function calcBuffs(unit) {
-            // Controlla se è accerchiato (>= 2 nemici vicini)
             let enemyCount = 0;
             const adjacent = [[0,-1],[0,1],[-1,0],[1,0]];
             adjacent.forEach(dir => {
@@ -397,13 +480,6 @@
             unit.surrounded = (enemyCount >= 2);
         }
 
-        function getMovementCost(unit, terrain) {
-            if(terrain === 'citta') return 2; // Entrare in città costa doppio
-            if(terrain === 'deserto' && !unit.ignoresDesert) return 2; // Deserto rallenta
-            if(terrain === 'bosco' && unit.isMounted) return 2; // Bosco rallenta cavalli
-            return 1;
-        }
-
         function getValidMoves(unit) {
             let moves = [];
             for (let y = 0; y < GRID_SIZE; y++) {
@@ -412,9 +488,11 @@
                     if (boardState[y][x].unit || !TERRAINS[boardState[y][x].terrain].walk) continue;
                     
                     let dist = Math.abs(x - unit.x) + Math.abs(y - unit.y);
-                    let cost = getMovementCost(unit, boardState[y][x].terrain);
+                    let cost = 1;
+                    if(boardState[y][x].terrain === 'citta') cost = 2;
+                    if(boardState[y][x].terrain === 'deserto' && !unit.ignoresDesert) cost = 2;
+                    if(boardState[y][x].terrain === 'bosco' && unit.isMounted) cost = 2;
                     
-                    // Semplificazione: usiamo dist + eventuale extra costo della casella finale
                     if (dist + (cost - 1) <= unit.mov) moves.push({ x, y });
                 }
             }
@@ -423,7 +501,6 @@
 
         function getValidAttackTargets(unit) {
             let targets = [];
-            // Bonus Gittata se su Collina
             let myRange = unit.range + (boardState[unit.y][unit.x].terrain === 'collina' ? 1 : 0);
             
             for (let y = 0; y < GRID_SIZE; y++) {
@@ -432,7 +509,6 @@
                     if (target && target.team !== unit.team) {
                         let dist = Math.abs(x - unit.x) + Math.abs(y - unit.y);
                         if (dist <= myRange) {
-                            // Line of Sight check per Buchi (Vuoto) se dist > 1
                             if(dist > 1 && !checkLineOfSight(unit.x, unit.y, x, y)) continue;
                             targets.push({ x, y, unit: target });
                         }
@@ -443,12 +519,11 @@
         }
 
         function checkLineOfSight(x1, y1, x2, y2) {
-            // Algoritmo base: se in mezzo c'è un 'vuoto', blocca. (Molto semplificato per griglia Manhattan)
             let minX = Math.min(x1, x2), maxX = Math.max(x1, x2);
             let minY = Math.min(y1, y2), maxY = Math.max(y1, y2);
             for(let y=minY; y<=maxY; y++){
                 for(let x=minX; x<=maxX; x++){
-                    if(boardState[y][x].terrain === 'vuoto') return false; // Il buco blocca la visuale
+                    if(boardState[y][x].terrain === 'vuoto') return false;
                 }
             }
             return true;
@@ -458,48 +533,63 @@
         function handleCellClick(x, y) {
             let cell = boardState[y][x];
 
-            // FASE DEPLOY
+            // FASE DEPLOY GIOCATORE
             if (gameState === 'deploy') {
-                if(cell.isSpawnPlayer && !cell.unit && unitsToDeploy.length > 0) {
-                    let u = unitsToDeploy.shift();
+                if(deployTurn === 'player' && cell.spawnTeam === 'player' && !cell.unit && pDeployQueue.length > 0) {
+                    let u = pDeployQueue.shift();
                     u.x = x; u.y = y; cell.unit = u; playerUnits.push(u);
-                    renderBoard();
-                    if(unitsToDeploy.length === 0) {
-                        gameState = 'playing'; logAction("Schieramento completato. Inizia la battaglia!"); updateUI();
-                    }
+                    logAction(`Hai schierato ${u.name}.`);
+                    checkEndDeployment('enemy');
                 }
                 return;
             }
 
             if (gameState !== 'playing' || currentTurn !== 'player') return;
 
-            // 1. Seleziona unità
-            if (cell.unit && cell.unit.team === 'player') {
+            // 1. Seleziona unità giocabile
+            if (cell.unit && cell.unit.team === 'player' && !cell.unit.hasActed) {
+                // Se era già selezionata -> ACCAMPATI (Cura e Fortifica)
+                if (activeUnit && activeUnit.id === cell.unit.id) {
+                    activeUnit.isCamped = true;
+                    activeUnit.currentHp = Math.min(activeUnit.hp, activeUnit.currentHp + 20); // Cura 20 HP
+                    activeUnit.hasActed = true;
+                    actionsLeft--;
+                    logAction(`⛺ ${activeUnit.name} si accampa! Recupera 20 HP e alza la difesa.`);
+                    activeUnit = null;
+                    renderBoard();
+                    checkTurnEnd();
+                    return;
+                }
+                
                 activeUnit = cell.unit;
                 updateInfo(activeUnit);
                 renderBoard();
                 return;
             }
 
-            if (!activeUnit || actionsLeft <= 0) return;
+            if (!activeUnit || actionsLeft <= 0 || activeUnit.hasActed) return;
 
-            // 2. Attacco (-1 PA)
+            // 2. Attacco (-1 PA, Esaurisce unità)
             if (cell.unit && cell.unit.team === 'enemy') {
                 if (getValidAttackTargets(activeUnit).some(a => a.x===x && a.y===y)) {
-                    executeAttack(activeUnit, cell.unit);
+                    executeAttack(activeUnit, cell.unit, false);
                     return;
                 }
             }
 
-            // 3. Movimento (-1 PA)
+            // 3. Movimento (-1 PA, Esaurisce unità, Rimuove Accampamento)
             if (!cell.unit) {
                 if (getValidMoves(activeUnit).some(m => m.x===x && m.y===y)) {
+                    activeUnit.isCamped = false; // Muovendosi perde il perk
                     boardState[activeUnit.y][activeUnit.x].unit = null;
                     activeUnit.x = x; activeUnit.y = y;
                     boardState[y][x].unit = activeUnit;
                     
+                    activeUnit.hasActed = true;
                     actionsLeft--;
-                    logAction(`🏃 ${activeUnit.name} si muove. (PA -1)`);
+                    logAction(`🏃 ${activeUnit.name} si posiziona.`);
+                    
+                    activeUnit = null;
                     renderBoard();
                     checkTurnEnd();
                     return;
@@ -507,40 +597,84 @@
             }
         }
 
-        function executeAttack(atkUnit, defUnit) {
-            calcBuffs(atkUnit); // Calcola al momento del colpo
+        // isCounter: booleano per sapere se è un attacco base o un contrattacco automatico
+        function executeAttack(atkUnit, defUnit, isCounter) {
+            calcBuffs(atkUnit); 
             
             let dmg = atkUnit.atk;
-            // Modificatori Attaccante
-            if(atkUnit.surrounded) dmg -= 15;
-            if(atkUnit.killBuff) { dmg += 15; atkUnit.killBuff = false; } // Consuma buff
             
-            // Modificatori Difensore (Terreno)
+            // Se è un contrattacco, applica il modificatore (Cecchini faranno male, Colossi bene)
+            if (isCounter) {
+                dmg = Math.round(dmg * atkUnit.counterMod);
+            } else {
+                // Modificatori normali
+                if(atkUnit.surrounded) dmg -= 15;
+                if(atkUnit.killBuff) { dmg += 15; atkUnit.killBuff = false; }
+            }
+            
+            // Modificatori Difensore (Terreno & Accampamento)
             let defTerrain = boardState[defUnit.y][defUnit.x].terrain;
-            if(defTerrain === 'citta') dmg = Math.round(dmg * 0.7); // -30% danno
-            if(defTerrain === 'bosco') dmg = Math.round(dmg * 0.8); // -20% danno
+            if(defTerrain === 'citta') dmg = Math.round(dmg * 0.7);
+            if(defTerrain === 'bosco') dmg = Math.round(dmg * 0.8);
+            if(defUnit.isCamped) dmg = Math.round(dmg * 0.7); // -30% se accampato!
 
-            dmg = Math.max(5, dmg); // Danno minimo
+            dmg = Math.max(5, dmg); // Almeno 5 danni
 
             defUnit.currentHp -= dmg;
-            actionsLeft--;
-            logAction(`⚔️ ${atkUnit.name} spara a ${defUnit.name}: ${dmg} danni! (PA -1)`);
+            
+            if(!isCounter) {
+                atkUnit.hasActed = true;
+                actionsLeft--;
+                atkUnit.isCamped = false; // Attaccare annulla l'accampamento
+                logAction(`⚔️ ${atkUnit.name} spara a ${defUnit.name}: ${dmg} danni!`);
+            } else {
+                logAction(`↪️ ${atkUnit.name} CONTRATTACCA: ${dmg} danni a ${defUnit.name}!`);
+            }
 
             if (defUnit.currentHp <= 0) {
-                logAction(`☠️ ${defUnit.name} eliminato! ${atkUnit.name} ottiene FURIA.`);
-                atkUnit.killBuff = true; // Ottiene buff uccisione
+                logAction(`☠️ ${defUnit.name} eliminato!`);
+                if(!isCounter) atkUnit.killBuff = true;
                 boardState[defUnit.y][defUnit.x].unit = null;
                 enemyUnits = enemyUnits.filter(u => u.id !== defUnit.id);
                 playerUnits = playerUnits.filter(u => u.id !== defUnit.id);
+            } else if (!isCounter) {
+                // IL DIFENSORE È SOPRAVVISSUTO: Può contrattaccare se l'attaccante è a tiro?
+                let dist = Math.abs(atkUnit.x - defUnit.x) + Math.abs(atkUnit.y - defUnit.y);
+                let defRange = defUnit.range + (boardState[defUnit.y][defUnit.x].terrain === 'collina' ? 1 : 0);
+                
+                if (dist <= defRange) {
+                    if(dist === 1 || checkLineOfSight(defUnit.x, defUnit.y, atkUnit.x, atkUnit.y)) {
+                        // Ritardo visivo per il contrattacco
+                        setTimeout(() => {
+                            executeAttack(defUnit, atkUnit, true);
+                            renderBoard();
+                            if(!checkVictory() && currentTurn === 'player') checkTurnEnd();
+                        }, 500);
+                        activeUnit = null;
+                        renderBoard();
+                        return; // Esce per attendere il timeout
+                    }
+                }
             }
 
+            activeUnit = null;
             renderBoard();
-            if(!checkVictory()) checkTurnEnd();
+            if(!checkVictory() && !isCounter) checkTurnEnd();
         }
 
         // === FLUSSO TURNI E IA ===
         function checkTurnEnd() {
-            if (actionsLeft <= 0) {
+            // Conta quante unità POSSONO ancora agire
+            let canActCount = currentTurn === 'player' ? playerUnits.filter(u => !u.hasActed).length : enemyUnits.filter(u => !u.hasActed).length;
+            
+            if (actionsLeft <= 0 || canActCount === 0) {
+                passTurn();
+            }
+        }
+
+        function forcePassTurn() {
+            if(gameState === 'playing' && currentTurn === 'player') {
+                logAction("Hai deciso di terminare il turno in anticipo.");
                 passTurn();
             }
         }
@@ -550,39 +684,49 @@
             
             if (currentTurn === 'player') {
                 currentTurn = 'enemy'; activeUnit = null; actionsLeft = 3;
+                enemyUnits.forEach(u => u.hasActed = false); // Ricarica IA
                 updateUI(); renderBoard();
-                logAction("--- TURNO NEMICO (3 Azioni) ---");
-                setTimeout(aiTurn, 800);
+                logAction("--- TURNO NEMICO ---");
+                setTimeout(aiTurn, 1000);
             } else {
                 currentTurn = 'player'; activeUnit = null; actionsLeft = 3;
+                playerUnits.forEach(u => u.hasActed = false); // Ricarica Player
                 updateUI(); renderBoard();
                 logAction("--- TUO TURNO ---");
             }
         }
 
         function aiTurn() {
-            if (gameState !== 'playing') return;
+            if (gameState !== 'playing' || currentTurn !== 'enemy') return;
             
-            // Esegue un'azione alla volta ogni 800ms finché ha PA
-            if(actionsLeft > 0 && enemyUnits.length > 0) {
+            let availableUnits = enemyUnits.filter(u => !u.hasActed);
+            
+            if(actionsLeft > 0 && availableUnits.length > 0) {
                 let acted = false;
                 
-                // Cerca attacco
-                for(let u of enemyUnits) {
+                // 1. Cerca Bersaglio Facile
+                for(let u of availableUnits) {
                     let targets = getValidAttackTargets(u);
                     if(targets.length > 0) {
-                        // Difficoltà: se Normale/Difficile, cerca chi ha meno vita
                         if(selectedDifficulty !== 'Facile') targets.sort((a,b)=> a.unit.currentHp - b.unit.currentHp);
-                        executeAttack(u, targets[0].unit);
+                        executeAttack(u, targets[0].unit, false);
                         acted = true; break;
                     }
                 }
 
-                // Altrimenti Muovi verso il giocatore
+                // 2. Se nessuno può attaccare, muovi o accampati
                 if(!acted) {
-                    let u = enemyUnits[Math.floor(Math.random() * enemyUnits.length)];
+                    let u = availableUnits[Math.floor(Math.random() * availableUnits.length)];
                     let moves = getValidMoves(u);
-                    if(moves.length > 0) {
+                    
+                    // IA Avanzata: se ha poca vita, 50% di possibilità di accamparsi e curarsi!
+                    if (u.currentHp < u.hp * 0.4 && selectedDifficulty === 'Difficile' && Math.random() > 0.5) {
+                        u.isCamped = true;
+                        u.currentHp = Math.min(u.hp, u.currentHp + 20);
+                        u.hasActed = true; actionsLeft--;
+                        logAction(`⛺ Il Nemico accampa ${u.name} per curarsi!`);
+                        renderBoard();
+                    } else if(moves.length > 0) {
                         let closest = playerUnits[0], minDist = 999;
                         playerUnits.forEach(pu => {
                             let d = Math.abs(pu.x-u.x) + Math.abs(pu.y-u.y);
@@ -590,18 +734,19 @@
                         });
                         moves.sort((a,b)=> (Math.abs(a.x-closest.x)+Math.abs(a.y-closest.y)) - (Math.abs(b.x-closest.x)+Math.abs(b.y-closest.y)));
                         
+                        u.isCamped = false;
                         boardState[u.y][u.x].unit = null;
                         u.x = moves[0].x; u.y = moves[0].y;
                         boardState[u.y][u.x].unit = u;
-                        actionsLeft--;
-                        logAction(`🤖 ${u.name} si muove in avanti.`);
+                        u.hasActed = true; actionsLeft--;
+                        logAction(`🤖 ${u.name} si avvicina.`);
                         renderBoard();
                     } else {
-                        actionsLeft--; // Perde l'azione se bloccato
+                        u.hasActed = true; // Salta il turno se bloccato
                     }
                 }
                 
-                if(!checkVictory()) setTimeout(aiTurn, 800); // Loop per le 3 azioni
+                if(!checkVictory()) setTimeout(aiTurn, 1000); 
             } else {
                 passTurn();
             }
@@ -609,18 +754,32 @@
 
         // === UI UTILS ===
         function checkVictory() {
-            if (enemyUnits.length === 0) { gameState = 'gameover'; alert("VITTORIA!"); return true; }
-            if (playerUnits.length === 0) { gameState = 'gameover'; alert("SCONFITTA!"); return true; }
+            if (enemyUnits.length === 0) { gameState = 'gameover'; alert("🎉 VITTORIA STRATEGICA!"); return true; }
+            if (playerUnits.length === 0) { gameState = 'gameover'; alert("☠️ SCONFITTA!"); return true; }
             return false;
         }
 
         function updateUI() {
             let b = document.getElementById('turn-badge');
-            if(gameState === 'deploy') { b.innerText = "SCHIERAMENTO"; b.style.background = "#fff9c4"; b.style.color = "#f57f17"; }
-            else if(currentTurn === 'player') { b.innerText = "TUO TURNO"; b.style.background = "#e6f0fa"; b.style.color = "#2b5b84"; }
-            else { b.innerText = "TURNO NEMICO"; b.style.background = "#fbebe8"; b.style.color = "#9e2a2b"; document.getElementById('status-msg').innerText = "Attendi la mossa..."; }
+            let btnPass = document.getElementById('btn-pass');
             
-            if(currentTurn==='player' && gameState==='playing') document.getElementById('status-msg').innerText = "Seleziona e spendi 3 Azioni.";
+            if(gameState === 'deploy') { 
+                b.innerText = `SCHIERA: ${deployTurn === 'player' ? 'TU' : 'NEMICO'}`; 
+                b.style.background = "#fff9c4"; b.style.color = "#f57f17"; 
+                btnPass.style.display = 'none';
+            }
+            else if(currentTurn === 'player') { 
+                b.innerText = "TUO TURNO"; 
+                b.style.background = "#e6f0fa"; b.style.color = "#2b5b84"; 
+                document.getElementById('status-msg').innerText = "Scegli un'unità grigia per agire.";
+                btnPass.style.display = 'block';
+            }
+            else { 
+                b.innerText = "TURNO NEMICO"; 
+                b.style.background = "#fbebe8"; b.style.color = "#9e2a2b"; 
+                document.getElementById('status-msg').innerText = "Attendi la mossa..."; 
+                btnPass.style.display = 'none';
+            }
         }
 
         function updateAPDisplay() {
@@ -634,7 +793,7 @@
             document.getElementById('unit-detail-box').innerHTML = `
                 <strong>${u.icon} ${u.name}</strong><br>
                 ❤️ HP: ${u.currentHp}/${u.hp} | Atk: ${u.atk} ${u.killBuff ? '<span style="color:orange">(+15)</span>' : ''} ${u.surrounded ? '<span style="color:red">(-15)</span>' : ''}<br>
-                ⚡ Mov: ${u.mov} | 🎯 Raggio: ${u.range}
+                ⚡ Mov: ${u.mov} | 🎯 Raggio: ${u.range} | 🛡️ Contrat: ${u.counterMod*100}%
             `;
         }
 
